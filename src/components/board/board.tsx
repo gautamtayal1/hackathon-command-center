@@ -127,7 +127,7 @@ export function Board({ initialTasks, actions }: BoardProps) {
       <header className="px-1 py-3 sm:px-2">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-md border border-pink-200 bg-pink-50 px-2.5 py-1 text-xs font-black uppercase tracking-[0.2em] text-pink-700">
+            <div className="inline-flex items-center gap-2 rounded-md border border-[var(--pink-line)] bg-[var(--pink-soft)] px-2.5 py-1 text-xs font-black uppercase tracking-[0.2em] text-[var(--pink-ink)]">
               <Sparkles className="size-3.5" aria-hidden="true" />
               command center
             </div>
@@ -149,7 +149,7 @@ export function Board({ initialTasks, actions }: BoardProps) {
       </header>
 
       {error && editor.mode === "closed" ? (
-        <div className="rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm font-bold text-pink-700">
+        <div className="rounded-lg border border-[var(--pink-line)] bg-[var(--pink-soft)] px-4 py-3 text-sm font-bold text-[var(--pink-ink)]">
           {error}
         </div>
       ) : null}
@@ -168,8 +168,8 @@ export function Board({ initialTasks, actions }: BoardProps) {
                 <div
                   className={`border-b p-3 ${
                     isPink
-                      ? "border-pink-100 bg-pink-50/80"
-                      : "border-blue-100 bg-blue-50/80"
+                      ? "border-[var(--pink-line)] bg-[var(--pink-soft)]/80"
+                      : "border-[var(--azure-line)] bg-[var(--azure-soft)]/80"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -179,8 +179,8 @@ export function Board({ initialTasks, actions }: BoardProps) {
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-black ${
                         isPink
-                          ? "bg-pink-600 text-white"
-                          : "bg-blue-600 text-white"
+                          ? "bg-[var(--pink)] text-white"
+                          : "bg-[var(--azure)] text-white"
                       }`}
                     >
                       {columnTasks.length}
@@ -192,7 +192,7 @@ export function Board({ initialTasks, actions }: BoardProps) {
                       setError("");
                       setEditor({ mode: "create", task: null, status: column.id });
                     }}
-                    className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-white/80 text-xs font-black uppercase tracking-[0.12em] text-slate-600 transition hover:border-blue-300 hover:bg-white hover:text-blue-700"
+                    className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-white/80 text-xs font-black uppercase tracking-[0.12em] text-slate-600 transition hover:border-[var(--azure)] hover:bg-white hover:text-[var(--azure-ink)]"
                   >
                     <Plus className="size-4" aria-hidden="true" />
                     Add
@@ -227,7 +227,7 @@ export function Board({ initialTasks, actions }: BoardProps) {
                       onClick={() =>
                         setEditor({ mode: "create", task: null, status: column.id })
                       }
-                      className="flex min-h-32 w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center text-sm font-bold text-slate-400 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                      className="flex min-h-32 w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 text-center text-sm font-bold text-slate-400 transition hover:border-[var(--azure)] hover:bg-[var(--azure-soft)] hover:text-[var(--azure-ink)]"
                     >
                       Add the first task here.
                     </button>
@@ -264,8 +264,8 @@ function Metric({
   tone: "blue" | "pink" | "ink";
 }) {
   const toneClass = {
-    blue: "border-blue-200 bg-blue-50 text-blue-700",
-    pink: "border-pink-200 bg-pink-50 text-pink-700",
+    blue: "border-[var(--azure-line)] bg-[var(--azure-soft)] text-[var(--azure-ink)]",
+    pink: "border-[var(--pink-line)] bg-[var(--pink-soft)] text-[var(--pink-ink)]",
     ink: "border-slate-200 bg-slate-950 text-white",
   }[tone];
 

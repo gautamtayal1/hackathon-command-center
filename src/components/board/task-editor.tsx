@@ -54,7 +54,7 @@ export function TaskEditor({
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-pink-600">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--pink)]">
               {mode === "create" ? "New task" : "Update task"}
             </p>
             <h2 className="font-display mt-1 text-2xl font-black text-slate-950">
@@ -81,7 +81,7 @@ export function TaskEditor({
               name="title"
               required
               defaultValue={initial.title}
-              className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
               placeholder="Secure mentor intros"
             />
           </label>
@@ -94,7 +94,7 @@ export function TaskEditor({
               name="description"
               defaultValue={initial.description}
               rows={5}
-              className="mt-2 w-full resize-none rounded-md border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="mt-2 w-full resize-none rounded-md border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
               placeholder="Notes, reminders, names, links, or judging context."
             />
           </label>
@@ -107,7 +107,7 @@ export function TaskEditor({
               <select
                 name="status"
                 defaultValue={initial.status}
-                className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-bold outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
               >
                 {BOARD_COLUMNS.map((column) => (
                   <option key={column.id} value={column.id}>
@@ -124,7 +124,7 @@ export function TaskEditor({
               <select
                 name="priority"
                 defaultValue={initial.priority}
-                className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-bold outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
               >
                 {PRIORITIES.map((priority) => (
                   <option key={priority.id} value={priority.id}>
@@ -144,7 +144,7 @@ export function TaskEditor({
                 name="dueDate"
                 type="date"
                 defaultValue={initial.dueDate ?? ""}
-                className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
               />
             </label>
 
@@ -155,14 +155,14 @@ export function TaskEditor({
               <input
                 name="areaLabel"
                 defaultValue={initial.areaLabel}
-                className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 w-full rounded-md border border-slate-200 px-3 text-sm font-bold outline-none transition focus:border-[var(--azure)] focus:ring-4 focus:ring-[var(--azure-soft)]"
                 placeholder="judges"
               />
             </label>
           </div>
 
           {error ? (
-            <p className="rounded-md border border-pink-200 bg-pink-50 px-3 py-2 text-sm font-bold text-pink-700">
+            <p className="rounded-md border border-[var(--pink-line)] bg-[var(--pink-soft)] px-3 py-2 text-sm font-bold text-[var(--pink-ink)]">
               {error}
             </p>
           ) : null}
@@ -179,7 +179,7 @@ export function TaskEditor({
           <button
             type="submit"
             disabled={pending}
-            className="h-10 rounded-md bg-slate-950 px-4 text-sm font-extrabold text-white transition hover:bg-blue-700 disabled:opacity-50"
+            className="h-10 rounded-md bg-slate-950 px-4 text-sm font-extrabold text-white transition hover:bg-[var(--azure)] disabled:opacity-50"
           >
             {pending ? "Saving" : mode === "create" ? "Create" : "Save"}
           </button>

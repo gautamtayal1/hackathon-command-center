@@ -12,9 +12,9 @@ import {
 import type { BoardTask, Priority } from "@/lib/board";
 
 const priorityStyles: Record<Priority, string> = {
-  LOW: "border-sky-200 bg-sky-50 text-sky-700",
-  MEDIUM: "border-blue-200 bg-blue-50 text-blue-700",
-  HIGH: "border-pink-200 bg-pink-50 text-pink-700",
+  LOW: "border-[var(--azure-line)] bg-[var(--azure-soft)] text-[var(--azure-ink)]",
+  MEDIUM: "border-[var(--azure)] bg-[var(--azure-soft)] text-[var(--azure-ink)]",
+  HIGH: "border-[var(--pink-line)] bg-[var(--pink-soft)] text-[var(--pink-ink)]",
 };
 
 type TaskCardProps = {
@@ -39,7 +39,7 @@ export function TaskCard({
   onMoveNext,
 }: TaskCardProps) {
   return (
-    <article className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+    <article className="group rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--azure-line)] hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <h3 className="min-w-0 text-sm font-extrabold leading-5 text-slate-950">
           {task.title}
@@ -86,7 +86,7 @@ export function TaskCard({
             aria-label="Move task to previous column"
             disabled={!canMovePrevious || pending}
             onClick={() => onMovePrevious(task)}
-            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-35"
+            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--azure-line)] hover:bg-[var(--azure-soft)] hover:text-[var(--azure-ink)] disabled:opacity-35"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
           </button>
@@ -96,7 +96,7 @@ export function TaskCard({
             aria-label="Move task to next column"
             disabled={!canMoveNext || pending}
             onClick={() => onMoveNext(task)}
-            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 disabled:opacity-35"
+            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--pink-line)] hover:bg-[var(--pink-soft)] hover:text-[var(--pink-ink)] disabled:opacity-35"
           >
             <ArrowRight className="size-4" aria-hidden="true" />
           </button>
@@ -109,7 +109,7 @@ export function TaskCard({
             aria-label="Edit task"
             disabled={pending}
             onClick={() => onEdit(task)}
-            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-35"
+            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--azure-line)] hover:bg-[var(--azure-soft)] hover:text-[var(--azure-ink)] disabled:opacity-35"
           >
             <Edit3 className="size-4" aria-hidden="true" />
           </button>
@@ -119,7 +119,7 @@ export function TaskCard({
             aria-label="Delete task"
             disabled={pending}
             onClick={() => onDelete(task.id)}
-            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 disabled:opacity-35"
+            className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--pink-line)] hover:bg-[var(--pink-soft)] hover:text-[var(--pink-ink)] disabled:opacity-35"
           >
             <Trash2 className="size-4" aria-hidden="true" />
           </button>

@@ -5,12 +5,16 @@
   --foreground: #111827;
   --muted: #667085;
   --panel: #ffffff;
-  --panel-strong: #f1f7ff;
-  --line: #d9e6f2;
-  --pink: #f03f92;
-  --pink-soft: #ffe0ef;
-  --blue: #2474f6;
-  --blue-soft: #dbeafe;
+  --panel-strong: #f2fbfb;
+  --line: #d8efed;
+  --pink: #f3197e;
+  --pink-soft: #ffe3f0;
+  --pink-line: #ffacd0;
+  --pink-ink: #9d064c;
+  --azure: #15b5b0;
+  --azure-soft: #dcfbf8;
+  --azure-line: #a8e9e5;
+  --azure-ink: #0c6865;
   --ink: #0f172a;
 }
 
@@ -27,8 +31,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(135deg, rgba(240, 63, 146, 0.1), transparent 30%),
-    linear-gradient(315deg, rgba(36, 116, 246, 0.12), transparent 36%),
+    linear-gradient(135deg, rgba(243, 25, 126, 0.1), transparent 30%),
+    linear-gradient(315deg, rgba(21, 181, 176, 0.14), transparent 36%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
