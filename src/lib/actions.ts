@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  isBudgetType,
   isBoardColumnId,
   isPriority,
+  type BudgetInput,
   type BoardColumnId,
   type TaskInput,
 } from "@/lib/board";
@@ -32,6 +34,31 @@ function cleanInput(input: TaskInput) {
     priority: input.priority,
     dueDate: input.dueDate ? new Date(`${input.dueDate}T00:00:00.000Z`) : null,
     areaLabel: input.areaLabel.trim(),
+    completed: input.completed,
+  };
+}
+
+function cleanBudgetInput(input: BudgetInput) {
+  const label = input.label.trim();
+
+  if (!label) {
+    throw new Error("Budget label is required.");
+  }
+
+  if (!isBudgetType(input.type)) {
+    throw new Error("Budget type is not valid.");
+  }
+
+  const amount = Number(input.amount.replace(",", "."));
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error("Budget amount must be a positive number.");
+  }
+
+  return {
+    label,
+    type: input.type,
+    amountCents: Math.round(amount * 100),
   };
 }
 
@@ -72,6 +99,15 @@ export async function deleteTask(id: string) {
   revalidatePath("/");
 }
 
+export async function toggleTaskCompletion(id: string, completed: boolean) {
+  await prisma.task.update({
+    where: { id },
+    data: { completed },
+  });
+
+  revalidatePath("/");
+}
+
 export async function moveTask(id: string, status: BoardColumnId) {
   if (!isBoardColumnId(status)) {
     throw new Error("Task status is not valid.");
@@ -84,6 +120,39 @@ export async function moveTask(id: string, status: BoardColumnId) {
   await prisma.task.update({
     where: { id },
     data: { status, sortOrder },
+  });
+
+  revalidatePath("/");
+}
+
+export async function createBudgetEntry(input: BudgetInput) {
+  const hackathon = await getDefaultHackathon();
+  const data = cleanBudgetInput(input);
+
+  await prisma.budgetEntry.create({
+    data: {
+      ...data,
+      hackathonId: hackathon.id,
+    },
+  });
+
+  revalidatePath("/");
+}
+
+export async function updateBudgetEntry(id: string, input: BudgetInput) {
+  const data = cleanBudgetInput(input);
+
+  await prisma.budgetEntry.update({
+    where: { id },
+    data,
+  });
+
+  revalidatePath("/");
+}
+
+export async function deleteBudgetEntry(id: string) {
+  await prisma.budgetEntry.delete({
+    where: { id },
   });
 
   revalidatePath("/");

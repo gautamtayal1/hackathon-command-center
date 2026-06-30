@@ -1,11 +1,28 @@
 export const BOARD_COLUMNS = [
-  { id: "RESEARCH", title: "Research", accent: "blue" },
-  { id: "PEOPLE_JUDGES", title: "People & Judges", accent: "pink" },
-  { id: "CAMPAIGNS", title: "Campaigns", accent: "blue" },
-  { id: "SUBMISSIONS", title: "Submissions", accent: "pink" },
-  { id: "FIRST_ROUND", title: "First Round", accent: "blue" },
-  { id: "FINALS", title: "Finals", accent: "pink" },
-  { id: "DONE", title: "Done", accent: "blue" },
+  {
+    id: "FOOD_DRINKS",
+    title: "Food & Drinks",
+    description: "Meals, snacks, coffee, water, and after-event drinks.",
+    accent: "pink",
+  },
+  {
+    id: "LOCATION",
+    title: "Location",
+    description: "Venue, rooms, check-in desk, signs, internet, and setup.",
+    accent: "blue",
+  },
+  {
+    id: "PARTICIPANTS",
+    title: "Participants",
+    description: "Registrations, reminders, team support, and attendance.",
+    accent: "pink",
+  },
+  {
+    id: "SPONSORS",
+    title: "Sponsors",
+    description: "Sponsor outreach, packages, invoices, and deliverables.",
+    accent: "blue",
+  },
 ] as const;
 
 export const PRIORITIES = [
@@ -14,8 +31,14 @@ export const PRIORITIES = [
   { id: "HIGH", title: "High" },
 ] as const;
 
+export const BUDGET_TYPES = [
+  { id: "INCOME", title: "Income" },
+  { id: "EXPENSE", title: "Expense" },
+] as const;
+
 export type BoardColumnId = (typeof BOARD_COLUMNS)[number]["id"];
 export type Priority = (typeof PRIORITIES)[number]["id"];
+export type BudgetType = (typeof BUDGET_TYPES)[number]["id"];
 
 export type BoardTask = {
   id: string;
@@ -25,6 +48,7 @@ export type BoardTask = {
   priority: Priority;
   dueDate: string | null;
   areaLabel: string;
+  completed: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -36,6 +60,22 @@ export type TaskInput = {
   priority: Priority;
   dueDate: string | null;
   areaLabel: string;
+  completed: boolean;
+};
+
+export type BudgetEntry = {
+  id: string;
+  label: string;
+  type: BudgetType;
+  amountCents: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BudgetInput = {
+  label: string;
+  type: BudgetType;
+  amount: string;
 };
 
 export function isBoardColumnId(value: string): value is BoardColumnId {
@@ -44,4 +84,8 @@ export function isBoardColumnId(value: string): value is BoardColumnId {
 
 export function isPriority(value: string): value is Priority {
   return PRIORITIES.some((priority) => priority.id === value);
+}
+
+export function isBudgetType(value: string): value is BudgetType {
+  return BUDGET_TYPES.some((type) => type.id === value);
 }

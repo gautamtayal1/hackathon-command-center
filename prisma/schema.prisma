@@ -9,11 +9,12 @@ datasource db {
 }
 
 model Hackathon {
-  id        String   @id @default(cuid())
-  name      String   @default("Hackathon")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tasks     Task[]
+  id            String        @id @default(cuid())
+  name          String        @default("Hackathon")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  tasks         Task[]
+  budgetEntries BudgetEntry[]
 }
 
 model Task {
@@ -26,10 +27,24 @@ model Task {
   priority    String    @default("MEDIUM")
   dueDate     DateTime?
   areaLabel   String    @default("")
+  completed   Boolean   @default(false)
   sortOrder   Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([hackathonId, status])
   @@index([status, sortOrder])
+}
+
+model BudgetEntry {
+  id          String    @id @default(cuid())
+  hackathonId String
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  label       String
+  type        String
+  amountCents Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([hackathonId, type])
 }
