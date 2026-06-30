@@ -1,0 +1,12 @@
+.DS_Store
+.env*.local
+.env
+node_modules
+.next
+out
+dist
+coverage
+*.log
+prisma/dev.db
+prisma/dev.db-journal
+src/generated/prisma
