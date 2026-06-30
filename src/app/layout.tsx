@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito_Sans, Syne } from "next/font/google";
+import { Manrope, Outfit } from "next/font/google";
 import "./globals.css";
 
-const bodyFont = Nunito_Sans({
+const bodyFont = Manrope({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
 });
 
-const displayFont = Syne({
+const displayFont = Outfit({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",

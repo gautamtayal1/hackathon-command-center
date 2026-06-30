@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fbff;
-  --foreground: #111827;
+  --background: #061618;
+  --foreground: #f8fbff;
   --muted: #667085;
   --panel: #ffffff;
   --panel-strong: #f2fbfb;
@@ -16,6 +16,10 @@
   --azure-line: #a8e9e5;
   --azure-ink: #0c6865;
   --ink: #0f172a;
+  --night: #061216;
+  --night-soft: #0b2529;
+  --glass: rgba(6, 18, 22, 0.74);
+  --glass-line: rgba(220, 251, 248, 0.24);
 }
 
 * {
@@ -31,11 +35,24 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(135deg, rgba(243, 25, 126, 0.1), transparent 30%),
-    linear-gradient(315deg, rgba(21, 181, 176, 0.14), transparent 36%),
+    linear-gradient(180deg, rgba(21, 181, 176, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(243, 25, 126, 0.24), transparent 34%),
+    linear-gradient(90deg, rgba(5, 31, 37, 0.92), rgba(6, 18, 22, 0.82)),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(115deg, transparent 0 20%, rgba(220, 251, 248, 0.08) 20% 20.4%, transparent 20.4% 44%, rgba(243, 25, 126, 0.08) 44% 44.3%, transparent 44.3%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 94px);
+  content: "";
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 button,
