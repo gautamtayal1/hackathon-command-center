@@ -24,7 +24,6 @@ const scoreSelect = {
   score: true,
   pitchScore: true,
   iterationScore: true,
-  potentialScore: true,
   uiUxScore: true,
   executionScore: true,
   note: true,

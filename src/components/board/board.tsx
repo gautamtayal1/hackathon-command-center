@@ -1914,7 +1914,7 @@ function JudgesWorkspace({
             Judges
           </h2>
           <p className="mt-1 text-sm font-medium text-[#8f8f8f]">
-            Groups of two, five criteria, two rounds of scoring.
+            Groups of two, four criteria scored out of 10, two rounds.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -2311,7 +2311,6 @@ function JudgesWorkspace({
                     <th className="px-3 py-1">Avg</th>
                     <th className="px-3 py-1">Pitch</th>
                     <th className="px-3 py-1">Iter</th>
-                    <th className="px-3 py-1">Strength</th>
                     <th className="px-3 py-1">UI/UX</th>
                     <th className="px-3 py-1">Exec</th>
                   </tr>
@@ -2359,9 +2358,6 @@ function JudgesWorkspace({
                         </td>
                         <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
                           {formatScore(application.iterationAverage)}
-                        </td>
-                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
-                          {formatScore(application.potentialAverage)}
                         </td>
                         <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
                           {formatScore(application.uiUxAverage)}

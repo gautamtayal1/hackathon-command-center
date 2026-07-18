@@ -69,7 +69,7 @@ export function JudgeWorkspace({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-5">
+          <div className="mt-5 grid gap-2 sm:grid-cols-4">
             {SCORE_CRITERIA.map((criterion) => (
               <ScoreInput
                 key={criterion.name}
@@ -130,8 +130,9 @@ function ScoreInput({
 }) {
   return (
     <label className="block rounded-[20px] bg-black p-3">
-      <span className="block text-xs font-semibold text-[#8f8f8f]">
-        {label}
+      <span className="flex items-center justify-between text-xs font-semibold text-[#8f8f8f]">
+        <span>{label}</span>
+        <span className="text-[#6f6f6f]">/10</span>
       </span>
       <input
         name={name}
@@ -140,6 +141,7 @@ function ScoreInput({
         max={10}
         required
         defaultValue={value || ""}
+        placeholder="1-10"
         className="mt-2 h-10 w-full rounded-[18px] border border-[#303030] bg-[#171717] px-3 text-base font-semibold text-white outline-none transition focus:border-[#4a4a4a]"
       />
     </label>

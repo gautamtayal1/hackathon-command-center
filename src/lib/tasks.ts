@@ -116,21 +116,15 @@ function serializeApplication(application: PrismaApplication): HackathonApplicat
 
 function scoreTotal(score: Pick<
   Score,
-  | "score"
-  | "pitchScore"
-  | "iterationScore"
-  | "potentialScore"
-  | "uiUxScore"
-  | "executionScore"
+  "score" | "pitchScore" | "iterationScore" | "uiUxScore" | "executionScore"
 >) {
   const criteriaTotal =
     score.pitchScore +
     score.iterationScore +
-    score.potentialScore +
     score.uiUxScore +
     score.executionScore;
 
-  return criteriaTotal > 0 ? criteriaTotal : score.score * 5;
+  return criteriaTotal > 0 ? criteriaTotal : score.score * 4;
 }
 
 function average(values: number[]) {
@@ -530,9 +524,6 @@ export async function getJudgingApplications(
         ),
         iterationAverage: average(
           round1Scores.map((score) => score.iterationScore).filter(Boolean),
-        ),
-        potentialAverage: average(
-          round1Scores.map((score) => score.potentialScore).filter(Boolean),
         ),
         uiUxAverage: average(
           round1Scores.map((score) => score.uiUxScore).filter(Boolean),

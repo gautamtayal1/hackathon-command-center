@@ -115,6 +115,32 @@ export function ApplicationForm({
             Your submission has been received. Thanks for taking part — the
             judges will review it and results will be shared soon.
           </p>
+          {state.assignedGroup ? (
+            <div className="mt-8 w-full rounded-[16px] border border-[#303030] bg-[#191919] px-5 py-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#9b9b9b]">
+                Your assigned group of judges
+              </p>
+              <p className="mt-1 text-lg font-semibold tracking-[-0.02em] text-white">
+                {state.assignedGroup.name}
+              </p>
+              {state.assignedGroup.judges.length ? (
+                <ul className="mt-3 space-y-1.5">
+                  {state.assignedGroup.judges.map((judgeName) => (
+                    <li
+                      key={judgeName}
+                      className="flex items-center gap-2 text-sm font-medium text-[#d6d6d6]"
+                    >
+                      <span
+                        className="size-1.5 rounded-full bg-[#6d6d6d]"
+                        aria-hidden="true"
+                      />
+                      {judgeName}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     );

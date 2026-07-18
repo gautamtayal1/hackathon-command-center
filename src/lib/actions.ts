@@ -616,6 +616,15 @@ async function cleanJudgeGroupForHackathon(
   return group.id;
 }
 
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export async function autoGenerateJudgeGroups() {
   const { workspace } = await getAdminContext();
   const hackathon = await getActiveHackathon(workspace.id);
@@ -629,6 +638,9 @@ export async function autoGenerateJudgeGroups() {
     throw new Error("Add judges before creating groups.");
   }
 
+  // Randomly pair judges so groups are shuffled, not creation-order buddies.
+  const shuffledJudges = shuffle(judges);
+
   await prisma.$transaction(async (tx) => {
     await tx.judge.updateMany({
       where: { hackathonId: hackathon.id },
@@ -638,7 +650,7 @@ export async function autoGenerateJudgeGroups() {
       where: { hackathonId: hackathon.id },
     });
 
-    for (let index = 0; index < Math.ceil(judges.length / 2); index += 1) {
+    for (let index = 0; index < Math.ceil(shuffledJudges.length / 2); index += 1) {
       const group = await tx.judgeGroup.create({
         data: {
           hackathonId: hackathon.id,
@@ -646,7 +658,7 @@ export async function autoGenerateJudgeGroups() {
           sortOrder: index,
         },
       });
-      const judgeIds = judges
+      const judgeIds = shuffledJudges
         .slice(index * 2, index * 2 + 2)
         .map((judge) => judge.id);
 
@@ -813,6 +825,10 @@ export async function sendAllJudgeMagicLinks() {
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
   message: string;
+  assignedGroup?: {
+    name: string;
+    judges: string[];
+  } | null;
 };
 
 export type JudgeLoginFormState = {
@@ -899,10 +915,29 @@ export async function submitApplication(
       builtDescription: String(formData.get("builtDescription") ?? ""),
     });
 
-    await prisma.application.create({
+    const application = await prisma.application.create({
       data: {
         ...data,
         hackathonId: hackathon.id,
+      },
+      select: { id: true },
+    });
+
+    // Assign this submission to a judge group, balancing evenly across groups.
+    await ensureApplicationAssignments(hackathon.id);
+
+    const assignment = await prisma.applicationAssignment.findUnique({
+      where: { applicationId: application.id },
+      select: {
+        group: {
+          select: {
+            name: true,
+            judges: {
+              orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+              select: { name: true },
+            },
+          },
+        },
       },
     });
 
@@ -910,7 +945,16 @@ export async function submitApplication(
     revalidatePath("/preview");
     revalidatePath(`/apply/${hackathon.id}`);
 
-    return { status: "success", message: "OK" };
+    return {
+      status: "success",
+      message: "OK",
+      assignedGroup: assignment?.group
+        ? {
+            name: assignment.group.name,
+            judges: assignment.group.judges.map((judge) => judge.name),
+          }
+        : null,
+    };
   } catch (error) {
     return {
       status: "error",
@@ -985,18 +1029,13 @@ export async function upsertJudgeScore(
     formData.get("iterationScore"),
     "Iteration",
   );
-  const potentialScore = cleanScoreValue(
-    formData.get("potentialScore"),
-    "Strength",
-  );
   const uiUxScore = cleanScoreValue(formData.get("uiUxScore"), "UI/UX");
   const executionScore = cleanScoreValue(
     formData.get("executionScore"),
     "Execution",
   );
   const score = Math.round(
-    (pitchScore + iterationScore + potentialScore + uiUxScore + executionScore) /
-      5,
+    (pitchScore + iterationScore + uiUxScore + executionScore) / 4,
   );
   const note = String(formData.get("note") ?? "").trim();
 
@@ -1012,7 +1051,6 @@ export async function upsertJudgeScore(
       score,
       pitchScore,
       iterationScore,
-      potentialScore,
       uiUxScore,
       executionScore,
       note,
@@ -1025,7 +1063,6 @@ export async function upsertJudgeScore(
       score,
       pitchScore,
       iterationScore,
-      potentialScore,
       uiUxScore,
       executionScore,
       note,

@@ -101,16 +101,17 @@ export type HackathonSummary = {
 };
 
 /**
- * The five judging criteria, scored 1-10 in each of the two rounds. `name`
- * matches both the Score model column and the form field name.
+ * The four judging criteria, each scored 1-10 in both rounds. `name` matches
+ * the Score model column and the form field name.
  */
 export const SCORE_CRITERIA = [
   { name: "pitchScore", label: "Pitch" },
   { name: "iterationScore", label: "Iteration" },
-  { name: "potentialScore", label: "Strength" },
   { name: "uiUxScore", label: "UI/UX" },
   { name: "executionScore", label: "Execution" },
 ] as const;
+
+export const SCORE_MAX = 10;
 
 export type ScoreCriterionName = (typeof SCORE_CRITERIA)[number]["name"];
 
@@ -174,7 +175,6 @@ export type JudgingApplication = HackathonApplication & {
   totalScore: number;
   pitchAverage: number | null;
   iterationAverage: number | null;
-  potentialAverage: number | null;
   uiUxAverage: number | null;
   executionAverage: number | null;
   round2ScoreCount: number;
