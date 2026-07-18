@@ -12,6 +12,7 @@ import {
   DEFAULT_BUDGET_LINES,
   DELETED_MAIN_TASK_LABEL,
   FINALIST_COUNT,
+  ROUND1_SUBMISSIONS_TO_ADVANCE,
   MAIN_TASK_LABEL,
   MAIN_TODO_TASKS,
   type BoardTask,
@@ -545,32 +546,10 @@ export async function getJudgingApplications(
 }
 
 /**
- * Round 1 is complete once every judge has scored every project assigned to
- * their group. Returns the required and completed score counts.
- */
-async function getRoundOneCompletion(hackathonId: string) {
-  const groups = await prisma.judgeGroup.findMany({
-    where: { hackathonId },
-    include: {
-      _count: { select: { judges: true, assignments: true } },
-    },
-  });
-
-  const required = groups.reduce(
-    (total, group) => total + group._count.judges * group._count.assignments,
-    0,
-  );
-  const completed = await prisma.score.count({
-    where: { hackathonId, round: 1 },
-  });
-
-  return { required, completed, complete: required > 0 && completed >= required };
-}
-
-/**
- * When round 1 finishes, freeze the top {@link FINALIST_COUNT} projects (by
- * combined round-1 score) as finalists and move the hackathon into round 2.
- * Idempotent: does nothing once the hackathon is already in round 2.
+ * When {@link ROUND1_SUBMISSIONS_TO_ADVANCE} judges have pressed "Submit
+ * scores", freeze the top {@link FINALIST_COUNT} projects (by combined round-1
+ * score) as finalists and move the hackathon into round 2. Idempotent: does
+ * nothing once the hackathon is already in round 2.
  */
 export async function maybePromoteToRoundTwo(hackathonId: string) {
   const hackathon = await prisma.hackathon.findUnique({
@@ -582,9 +561,11 @@ export async function maybePromoteToRoundTwo(hackathonId: string) {
     return;
   }
 
-  const { complete } = await getRoundOneCompletion(hackathonId);
+  const submissions = await prisma.judge.count({
+    where: { hackathonId, round1SubmittedAt: { not: null } },
+  });
 
-  if (!complete) {
+  if (submissions < ROUND1_SUBMISSIONS_TO_ADVANCE) {
     return;
   }
 
@@ -642,28 +623,27 @@ export async function getJudgingRoundStatus(
   workspaceId?: string,
 ): Promise<JudgingRoundStatus> {
   const hackathon = await getActiveHackathon(workspaceId);
-  const { required, completed, complete } = await getRoundOneCompletion(
-    hackathon.id,
-  );
 
-  const finalistCount = await prisma.application.count({
-    where: { hackathonId: hackathon.id, isFinalist: true },
-  });
-  const judgeCount = await prisma.judge.count({
-    where: { hackathonId: hackathon.id },
-  });
-
-  const round2Completed = await prisma.score.count({
-    where: { hackathonId: hackathon.id, round: 2 },
-  });
+  const [finalistCount, judgeCount, round1Submissions, round2Submissions] =
+    await Promise.all([
+      prisma.application.count({
+        where: { hackathonId: hackathon.id, isFinalist: true },
+      }),
+      prisma.judge.count({ where: { hackathonId: hackathon.id } }),
+      prisma.judge.count({
+        where: { hackathonId: hackathon.id, round1SubmittedAt: { not: null } },
+      }),
+      prisma.judge.count({
+        where: { hackathonId: hackathon.id, round2SubmittedAt: { not: null } },
+      }),
+    ]);
 
   return {
     currentRound: hackathon.currentRound,
-    round1Required: required,
-    round1Completed: completed,
-    round1Complete: complete,
-    round2Required: finalistCount * judgeCount,
-    round2Completed,
+    judgeCount,
+    round1Submissions,
+    round1SubmissionsNeeded: ROUND1_SUBMISSIONS_TO_ADVANCE,
+    round2Submissions,
     finalistCount,
   };
 }

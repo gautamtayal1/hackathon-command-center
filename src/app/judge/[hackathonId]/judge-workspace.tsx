@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import { SCORE_CRITERIA, type ScoreCriterionName } from "@/lib/board";
 
 type JudgeScore = {
@@ -18,12 +18,14 @@ type JudgeApplication = {
 
 export function JudgeWorkspace({
   applications,
-  scoreAction,
+  submitAction,
   round,
+  alreadySubmitted,
 }: {
   applications: JudgeApplication[];
-  scoreAction: (applicationId: string, formData: FormData) => Promise<void>;
+  submitAction: (formData: FormData) => Promise<void>;
   round: number;
+  alreadySubmitted: boolean;
 }) {
   if (!applications.length) {
     return (
@@ -41,11 +43,10 @@ export function JudgeWorkspace({
   }
 
   return (
-    <div className="space-y-3">
+    <form action={submitAction} className="space-y-3">
       {applications.map((application, index) => (
-        <form
+        <div
           key={application.id}
-          action={scoreAction.bind(null, application.id)}
           className="rounded-[20px] border border-[#303030] bg-[#212121] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -61,61 +62,63 @@ export function JudgeWorkspace({
                 {application.builtDescription}
               </p>
             </div>
-            <div className="rounded-[20px] bg-black px-4 py-3 text-right">
-              <p className="text-xs font-semibold text-[#8f8f8f]">Average</p>
-              <p className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">
-                {application.score ? application.score.score : "-"}
-              </p>
-            </div>
+            <a
+              href={application.githubRepoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-2 rounded-[20px] border border-[#303030] px-3 py-2 text-sm font-semibold text-white transition hover:border-[#4a4a4a] hover:text-[#15b5b0]"
+            >
+              GitHub repo
+              <ExternalLink className="size-4" aria-hidden="true" />
+            </a>
           </div>
 
           <div className="mt-5 grid gap-2 sm:grid-cols-4">
             {SCORE_CRITERIA.map((criterion) => (
               <ScoreInput
                 key={criterion.name}
-                name={criterion.name}
+                name={`${criterion.name}__${application.id}`}
                 label={criterion.label}
                 value={application.score?.[criterion.name]}
               />
             ))}
           </div>
 
-          <div className="mt-4 grid gap-3 border-t border-[#303030] pt-4 sm:grid-cols-[minmax(0,1fr)_160px]">
-            <div className="space-y-2 text-sm font-medium text-[#b4b4b4]">
-              <p>{application.participantsFullName}</p>
-              <a
-                href={application.githubRepoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-white transition hover:text-[#15b5b0]"
-              >
-                GitHub repo
-                <ExternalLink className="size-4" aria-hidden="true" />
-              </a>
-            </div>
-
-            <button
-              type="submit"
-              className="h-11 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black transition hover:bg-white"
-            >
-              Save score
-            </button>
-          </div>
-
           <label className="mt-4 block">
             <span className="mb-2 block text-sm font-semibold text-[#b4b4b4]">
-              Note
+              Note for {application.teamName}
             </span>
             <textarea
-              name="note"
+              name={`note__${application.id}`}
               rows={2}
               defaultValue={application.score?.note ?? ""}
               className="w-full resize-none rounded-[20px] border border-[#303030] bg-black px-4 py-3 text-sm font-medium text-white outline-none transition focus:border-[#4a4a4a]"
             />
           </label>
-        </form>
+        </div>
       ))}
-    </div>
+
+      <div className="sticky bottom-4 flex flex-col gap-3 rounded-[20px] border border-[#303030] bg-[#191919]/95 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium text-[#b4b4b4]">
+          {alreadySubmitted ? (
+            <span className="inline-flex items-center gap-2 text-[#8fd46a]">
+              <CheckCircle2 className="size-4" aria-hidden="true" />
+              Scores submitted. You can update and submit again.
+            </span>
+          ) : (
+            `Score all ${applications.length} ${
+              applications.length === 1 ? "team" : "teams"
+            } out of 10, then submit.`
+          )}
+        </p>
+        <button
+          type="submit"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-[20px] bg-[#f4f4f4] px-5 text-sm font-semibold text-black transition hover:bg-white"
+        >
+          {alreadySubmitted ? "Update submission" : "Submit scores"}
+        </button>
+      </div>
+    </form>
   );
 }
 

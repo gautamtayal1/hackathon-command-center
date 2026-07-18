@@ -92,6 +92,8 @@ model Judge {
   inviteStatus JudgeInviteStatus @default(CONTACT)
   invitedAt    DateTime?
   acceptedAt   DateTime?
+  round1SubmittedAt DateTime?
+  round2SubmittedAt DateTime?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   scores       Score[]

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireJudgeForHackathon } from "@/lib/auth";
-import { upsertJudgeScore } from "@/lib/actions";
+import { submitJudgeScores } from "@/lib/actions";
+import { ROUND1_SUBMISSIONS_TO_ADVANCE } from "@/lib/board";
 import { prisma } from "@/lib/prisma";
 import { JudgeWorkspace } from "@/app/judge/[hackathonId]/judge-workspace";
 
@@ -72,7 +73,16 @@ export default async function JudgeHackathonPage({
           })
         : [];
 
-  const scoreAction = upsertJudgeScore.bind(null, hackathonId);
+  const submitAction = submitJudgeScores.bind(null, hackathonId);
+  const alreadySubmitted = Boolean(
+    round === 2 ? judge.round2SubmittedAt : judge.round1SubmittedAt,
+  );
+  const round1Submissions =
+    round === 1
+      ? await prisma.judge.count({
+          where: { hackathonId, round1SubmittedAt: { not: null } },
+        })
+      : 0;
 
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-[#f4f4f4] sm:px-6">
@@ -107,12 +117,13 @@ export default async function JudgeHackathonPage({
           }`}
         >
           {round === 2
-            ? "Round 2 of 2 — Finals. Score every finalist team below."
-            : "Round 1 of 2 — Score the teams assigned to your group. Round 2 opens automatically once all judges finish."}
+            ? "Round 2 of 2 — Finals. Score every finalist team, then submit."
+            : `Round 1 of 2 — Score the teams assigned to your group, then press Submit scores. The finals open once ${ROUND1_SUBMISSIONS_TO_ADVANCE} judges submit (${round1Submissions}/${ROUND1_SUBMISSIONS_TO_ADVANCE} so far).`}
         </div>
 
         <JudgeWorkspace
           round={round}
+          alreadySubmitted={alreadySubmitted}
           applications={applications.map((application) => ({
             id: application.id,
             teamName: application.teamName,
@@ -122,7 +133,7 @@ export default async function JudgeHackathonPage({
             groupName: groupNameOf(application),
             score: application.scores[0] ?? null,
           }))}
-          scoreAction={scoreAction}
+          submitAction={submitAction}
         />
       </section>
     </main>

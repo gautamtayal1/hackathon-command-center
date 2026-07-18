@@ -1707,7 +1707,10 @@ function ApplicationsWorkspace({
 
 function RoundStatusBanner({ status }: { status: JudgingRoundStatus }) {
   const inRoundTwo = status.currentRound >= 2;
-  const round1Label = `${status.round1Completed}/${status.round1Required || 0} scores`;
+  const needed = status.round1SubmissionsNeeded || 0;
+  const progress = needed
+    ? Math.min(100, Math.round((status.round1Submissions / needed) * 100))
+    : 0;
 
   return (
     <div
@@ -1730,26 +1733,17 @@ function RoundStatusBanner({ status }: { status: JudgingRoundStatus }) {
         </span>
         <p className="text-sm font-medium text-[#b4b4b4]">
           {inRoundTwo
-            ? `${status.finalistCount} finalists · ${status.round2Completed}/${
-                status.round2Required || 0
-              } final scores in`
-            : status.round1Required === 0
+            ? `${status.finalistCount} finalists · ${status.round2Submissions}/${status.judgeCount} judges submitted`
+            : status.judgeCount === 0
               ? "Add judges, generate groups, and let teams apply to begin round 1."
-              : `${round1Label} in. Round 2 opens automatically once every judge finishes.`}
+              : `${status.round1Submissions}/${needed} judges submitted. Finals lock in once ${needed} submit.`}
         </p>
       </div>
-      {!inRoundTwo && status.round1Required > 0 ? (
+      {!inRoundTwo && status.judgeCount > 0 ? (
         <div className="h-2 w-full max-w-[220px] overflow-hidden rounded-full bg-[#303030]">
           <div
             className="h-full rounded-full bg-[#8fd46a] transition-all"
-            style={{
-              width: `${Math.min(
-                100,
-                Math.round(
-                  (status.round1Completed / status.round1Required) * 100,
-                ),
-              )}%`,
-            }}
+            style={{ width: `${progress}%` }}
           />
         </div>
       ) : null}

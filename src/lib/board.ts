@@ -113,6 +113,9 @@ export const SCORE_CRITERIA = [
 
 export const SCORE_MAX = 10;
 
+/** Round 1 closes and the finalists are locked once this many judges submit. */
+export const ROUND1_SUBMISSIONS_TO_ADVANCE = 5;
+
 export type ScoreCriterionName = (typeof SCORE_CRITERIA)[number]["name"];
 
 export const FINALIST_COUNT = 5;
@@ -183,11 +186,10 @@ export type JudgingApplication = HackathonApplication & {
 
 export type JudgingRoundStatus = {
   currentRound: number;
-  round1Required: number;
-  round1Completed: number;
-  round1Complete: boolean;
-  round2Required: number;
-  round2Completed: number;
+  judgeCount: number;
+  round1Submissions: number;
+  round1SubmissionsNeeded: number;
+  round2Submissions: number;
   finalistCount: number;
 };
 

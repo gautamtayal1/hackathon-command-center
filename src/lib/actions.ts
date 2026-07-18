@@ -1080,6 +1080,131 @@ export async function upsertJudgeScore(
   revalidatePath("/");
 }
 
+export async function submitJudgeScores(
+  hackathonId: string,
+  formData: FormData,
+) {
+  const { judge } = await requireJudgeForHackathon(hackathonId);
+
+  const hackathon = await prisma.hackathon.findUnique({
+    where: { id: hackathonId },
+    select: { currentRound: true },
+  });
+
+  if (!hackathon) {
+    throw new Error("Hackathon not found.");
+  }
+
+  const round = hackathon.currentRound >= 2 ? 2 : 1;
+
+  // Work out which teams this judge scores this round (server-side, so the
+  // client can't submit scores for teams it wasn't assigned).
+  let applications: { id: string }[];
+  if (round === 2) {
+    applications = await prisma.application.findMany({
+      where: { hackathonId, isFinalist: true },
+      select: { id: true },
+    });
+  } else {
+    if (!judge.groupId) {
+      throw new Error("You are not assigned to a judging group yet.");
+    }
+    applications = await prisma.application.findMany({
+      where: { hackathonId, assignment: { is: { groupId: judge.groupId } } },
+      select: { id: true },
+    });
+  }
+
+  if (!applications.length) {
+    throw new Error("There are no teams to score yet.");
+  }
+
+  // Validate every team's scores up front so a bad value can't leave a
+  // half-finished submission behind.
+  const rows = applications.map((application) => {
+    const pitchScore = cleanScoreValue(
+      formData.get(`pitchScore__${application.id}`),
+      "Pitch",
+    );
+    const iterationScore = cleanScoreValue(
+      formData.get(`iterationScore__${application.id}`),
+      "Iteration",
+    );
+    const uiUxScore = cleanScoreValue(
+      formData.get(`uiUxScore__${application.id}`),
+      "UI/UX",
+    );
+    const executionScore = cleanScoreValue(
+      formData.get(`executionScore__${application.id}`),
+      "Execution",
+    );
+    const score = Math.round(
+      (pitchScore + iterationScore + uiUxScore + executionScore) / 4,
+    );
+    const note = String(formData.get(`note__${application.id}`) ?? "").trim();
+
+    return {
+      applicationId: application.id,
+      pitchScore,
+      iterationScore,
+      uiUxScore,
+      executionScore,
+      score,
+      note,
+    };
+  });
+
+  await prisma.$transaction([
+    ...rows.map((row) =>
+      prisma.score.upsert({
+        where: {
+          applicationId_judgeId_round: {
+            applicationId: row.applicationId,
+            judgeId: judge.id,
+            round,
+          },
+        },
+        update: {
+          score: row.score,
+          pitchScore: row.pitchScore,
+          iterationScore: row.iterationScore,
+          uiUxScore: row.uiUxScore,
+          executionScore: row.executionScore,
+          note: row.note,
+        },
+        create: {
+          hackathonId,
+          applicationId: row.applicationId,
+          judgeId: judge.id,
+          round,
+          score: row.score,
+          pitchScore: row.pitchScore,
+          iterationScore: row.iterationScore,
+          uiUxScore: row.uiUxScore,
+          executionScore: row.executionScore,
+          note: row.note,
+        },
+      }),
+    ),
+    prisma.judge.update({
+      where: { id: judge.id },
+      data:
+        round === 2
+          ? { round2SubmittedAt: new Date() }
+          : { round1SubmittedAt: new Date() },
+    }),
+  ]);
+
+  // Enough round-1 submissions may now lock the finalists and open round 2.
+  if (round === 1) {
+    await maybePromoteToRoundTwo(hackathonId);
+  }
+
+  revalidatePath(`/judge/${hackathonId}`);
+  revalidatePath("/judge");
+  revalidatePath("/");
+}
+
 export async function createHackathonFromLuma(input: HackathonInput) {
   const { workspace } = await getAdminContext();
 
