@@ -1070,7 +1070,7 @@ export async function upsertJudgeScore(
   });
 
   // A completed round-1 submission may be the last one needed — check whether
-  // the top 5 finalists should now be locked in and round 2 opened.
+  // the top finalists should now be locked in and round 2 opened.
   if (round === 1) {
     await maybePromoteToRoundTwo(hackathonId);
   }

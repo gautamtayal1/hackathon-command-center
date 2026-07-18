@@ -114,11 +114,11 @@ export const SCORE_CRITERIA = [
 export const SCORE_MAX = 10;
 
 /** Round 1 closes and the finalists are locked once this many judges submit. */
-export const ROUND1_SUBMISSIONS_TO_ADVANCE = 5;
+export const ROUND1_SUBMISSIONS_TO_ADVANCE = 6;
 
 export type ScoreCriterionName = (typeof SCORE_CRITERIA)[number]["name"];
 
-export const FINALIST_COUNT = 5;
+export const FINALIST_COUNT = 6;
 
 export type HackathonInput = {
   lumaUrl: string;
