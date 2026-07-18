@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { Board } from "@/components/board/board";
+import { LogoutButton } from "@/components/logout-button";
 import { AccessDeniedError, getAdminContext } from "@/lib/auth";
 import {
   createBudgetEntry,
@@ -13,6 +14,8 @@ import {
   deleteTask,
   moveJudgeToGroup,
   selectHackathon,
+  sendAllJudgeMagicLinks,
+  sendJudgeMagicLink,
   toggleTaskCompletion,
   updateBudgetEntry,
   updateJudge,
@@ -52,6 +55,7 @@ export default async function Home() {
     applications,
     judgeGroups,
     judgingApplications,
+    judgingRoundStatus,
   } =
     await getDashboardData(adminContext.workspace.id);
 
@@ -67,6 +71,7 @@ export default async function Home() {
         applications={applications}
         judgeGroups={judgeGroups}
         judgingApplications={judgingApplications}
+        judgingRoundStatus={judgingRoundStatus}
         actions={{
           autoGenerateJudgeGroups,
           moveJudgeToGroup,
@@ -83,6 +88,8 @@ export default async function Home() {
           updateJudge,
           deleteJudge,
           deleteApplication,
+          sendJudgeMagicLink,
+          sendAllJudgeMagicLinks,
         }}
       />
     </main>
@@ -101,6 +108,9 @@ function AdminAccessDenied() {
           This account is signed in, but it is not an admin of this workspace.
           Judges should use the judge portal from their invite.
         </p>
+        <div className="mt-6">
+          <LogoutButton label="Log out and switch account" />
+        </div>
       </section>
     </main>
   );

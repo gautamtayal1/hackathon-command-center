@@ -96,8 +96,25 @@ export type HackathonSummary = {
   lumaUrl: string | null;
   startsAt: string | null;
   isActive: boolean;
+  currentRound: number;
   createdAt: string;
 };
+
+/**
+ * The five judging criteria, scored 1-10 in each of the two rounds. `name`
+ * matches both the Score model column and the form field name.
+ */
+export const SCORE_CRITERIA = [
+  { name: "pitchScore", label: "Pitch" },
+  { name: "iterationScore", label: "Iteration" },
+  { name: "potentialScore", label: "Strength" },
+  { name: "uiUxScore", label: "UI/UX" },
+  { name: "executionScore", label: "Execution" },
+] as const;
+
+export type ScoreCriterionName = (typeof SCORE_CRITERIA)[number]["name"];
+
+export const FINALIST_COUNT = 5;
 
 export type HackathonInput = {
   lumaUrl: string;
@@ -105,12 +122,15 @@ export type HackathonInput = {
   startsAt?: string | null;
 };
 
+export type JudgeInviteStatus = "CONTACT" | "PENDING" | "ACCEPTED" | "REVOKED";
+
 export type Judge = {
   id: string;
   name: string;
   email: string | null;
   groupId: string | null;
   sortOrder: number;
+  inviteStatus: JudgeInviteStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -148,13 +168,27 @@ export type HackathonApplication = {
 export type JudgingApplication = HackathonApplication & {
   groupId: string | null;
   groupName: string | null;
+  isFinalist: boolean;
   scoreCount: number;
   averageScore: number | null;
   totalScore: number;
   pitchAverage: number | null;
+  iterationAverage: number | null;
   potentialAverage: number | null;
   uiUxAverage: number | null;
   executionAverage: number | null;
+  round2ScoreCount: number;
+  round2Average: number | null;
+};
+
+export type JudgingRoundStatus = {
+  currentRound: number;
+  round1Required: number;
+  round1Completed: number;
+  round1Complete: boolean;
+  round2Required: number;
+  round2Completed: number;
+  finalistCount: number;
 };
 
 export type ApplicationInput = {

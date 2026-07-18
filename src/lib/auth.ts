@@ -1,8 +1,11 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DEV_BYPASS_COOKIE, DEV_USER, isDevBypassEnabled } from "@/lib/dev-mode";
+import { ADMIN_COOKIE, ADMIN_USER, adminCookieToken } from "@/lib/admin-auth";
 
 export class AccessDeniedError extends Error {
   constructor(message = "You do not have access to this area.") {
@@ -18,6 +21,22 @@ export type DrakiUser = {
 };
 
 export async function getCurrentUser(): Promise<DrakiUser | null> {
+  const cookieStore = await cookies();
+
+  // Admin session: password kept in ADMIN_PASSWORD env var.
+  const adminToken = adminCookieToken();
+  if (adminToken && cookieStore.get(ADMIN_COOKIE)?.value === adminToken) {
+    return ADMIN_USER;
+  }
+
+  // Optional dev-only bypass button on the login page.
+  if (
+    isDevBypassEnabled() &&
+    cookieStore.get(DEV_BYPASS_COOKIE)?.value === "1"
+  ) {
+    return DEV_USER;
+  }
+
   const supabase = await createSupabaseServerClient();
   const { data: claimsData, error: claimsError } =
     await supabase.auth.getClaims();

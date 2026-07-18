@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarDays, ArrowRight } from "lucide-react";
 import { requireUser, upsertUserProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { LogoutButton } from "@/components/logout-button";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +20,22 @@ export default async function JudgeHomePage() {
     orderBy: [{ createdAt: "desc" }],
   });
 
+  // With a single assignment, drop the judge straight onto their dashboard.
+  if (assignments.length === 1) {
+    redirect(`/judge/${assignments[0].hackathonId}`);
+  }
+
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-[#f4f4f4] sm:px-6">
       <section className="mx-auto w-full max-w-[760px]">
-        <div className="mb-8">
-          <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
-            Your hackathons
-          </h1>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
+              Your hackathons
+            </h1>
+          </div>
+          <LogoutButton />
         </div>
 
         {assignments.length ? (

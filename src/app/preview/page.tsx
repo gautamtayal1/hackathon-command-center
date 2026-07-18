@@ -8,6 +8,8 @@ import {
   deleteBudgetEntry,
   deleteJudge,
   moveJudgeToGroup,
+  sendAllJudgeMagicLinks,
+  sendJudgeMagicLink,
   updateBudgetEntry,
   updateJudge,
 } from "@/lib/actions";
@@ -41,6 +43,7 @@ export default async function PreviewDashboard() {
     applications,
     judgeGroups,
     judgingApplications,
+    judgingRoundStatus,
   } = await getDashboardData();
 
   return (
@@ -55,6 +58,7 @@ export default async function PreviewDashboard() {
         applications={applications}
         judgeGroups={judgeGroups}
         judgingApplications={judgingApplications}
+        judgingRoundStatus={judgingRoundStatus}
         actions={{
           autoGenerateJudgeGroups,
           moveJudgeToGroup,
@@ -71,6 +75,8 @@ export default async function PreviewDashboard() {
           updateJudge,
           deleteJudge,
           deleteApplication,
+          sendJudgeMagicLink,
+          sendAllJudgeMagicLinks,
         }}
       />
     </main>

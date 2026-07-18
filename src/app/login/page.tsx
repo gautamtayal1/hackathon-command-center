@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Gavel, Shield } from "lucide-react";
+import { ArrowRight, Gavel, Shield, Wrench } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { isDevBypassEnabled } from "@/lib/dev-mode";
+import { devBypassLogin } from "@/app/login/dev-bypass-action";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -59,6 +61,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             body="Magic link access for assigned hackathon scoring."
           />
         </div>
+
+        {isDevBypassEnabled() ? (
+          <form action={devBypassLogin} className="mt-4">
+            <input type="hidden" name="next" value={nextPath} />
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center gap-2 rounded-[20px] border border-dashed border-[#4a4a4a] bg-[#191919] px-4 text-sm font-semibold text-[#f4b23c] transition hover:border-[#6a6a6a] hover:bg-[#212121]"
+            >
+              <Wrench className="size-4" aria-hidden="true" />
+              Bypass auth (dev only)
+            </button>
+          </form>
+        ) : null}
       </section>
     </main>
   );

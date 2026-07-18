@@ -13,44 +13,66 @@ type JudgeHackathonPageProps = {
   }>;
 };
 
+function groupNameOf(application: {
+  assignment?: { group: { name: string } } | null;
+  [key: string]: unknown;
+}) {
+  return application.assignment?.group.name ?? null;
+}
+
+const scoreSelect = {
+  score: true,
+  pitchScore: true,
+  iterationScore: true,
+  potentialScore: true,
+  uiUxScore: true,
+  executionScore: true,
+  note: true,
+} as const;
+
 export default async function JudgeHackathonPage({
   params,
 }: JudgeHackathonPageProps) {
   const { hackathonId } = await params;
   const { judge } = await requireJudgeForHackathon(hackathonId);
-  const applications = judge.groupId
-    ? await prisma.application.findMany({
-        where: {
-          hackathonId,
-          assignment: {
-            is: {
-              groupId: judge.groupId,
+  const round = judge.hackathon.currentRound >= 2 ? 2 : 1;
+
+  const applications =
+    round === 2
+      ? // Round 2: every judge scores the finalist teams.
+        await prisma.application.findMany({
+          where: { hackathonId, isFinalist: true },
+          include: {
+            scores: {
+              where: { judgeId: judge.id, round: 2 },
+              select: scoreSelect,
             },
           },
-        },
-        include: {
-          scores: {
-            where: { judgeId: judge.id },
-            select: {
-              score: true,
-              pitchScore: true,
-              potentialScore: true,
-              uiUxScore: true,
-              executionScore: true,
-              note: true,
+          orderBy: [{ createdAt: "asc" }],
+        })
+      : // Round 1: score the projects assigned to your group.
+        judge.groupId
+        ? await prisma.application.findMany({
+            where: {
+              hackathonId,
+              assignment: { is: { groupId: judge.groupId } },
             },
-          },
-          assignment: {
             include: {
-              group: {
-                select: { name: true },
+              scores: {
+                where: { judgeId: judge.id, round: 1 },
+                select: scoreSelect,
+              },
+              assignment: {
+                include: { group: { select: { name: true } } },
               },
             },
-          },
-        },
-        orderBy: [{ assignment: { sortOrder: "asc" } }, { createdAt: "asc" }],
-      })
-    : [];
+            orderBy: [
+              { assignment: { sortOrder: "asc" } },
+              { createdAt: "asc" },
+            ],
+          })
+        : [];
+
   const scoreAction = upsertJudgeScore.bind(null, hackathonId);
 
   return (
@@ -64,7 +86,7 @@ export default async function JudgeHackathonPage({
           Judges
         </Link>
 
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-[#9b9b9b]">
               Judging as {judge.name}
@@ -74,18 +96,31 @@ export default async function JudgeHackathonPage({
             </h1>
           </div>
           <p className="rounded-[20px] border border-[#303030] px-4 py-2 text-sm font-semibold text-[#b4b4b4]">
-            {applications.length} applications
+            {applications.length} {round === 2 ? "finalists" : "teams"}
           </p>
         </div>
 
+        <div
+          className={`mb-8 rounded-[20px] border px-4 py-3 text-sm font-semibold ${
+            round === 2
+              ? "border-[#3a5f2a] bg-[#16220f] text-[#c7f0a9]"
+              : "border-[#303030] bg-[#191919] text-[#d6d6d6]"
+          }`}
+        >
+          {round === 2
+            ? "Round 2 of 2 — Finals. Score every finalist team below."
+            : "Round 1 of 2 — Score the teams assigned to your group. Round 2 opens automatically once all judges finish."}
+        </div>
+
         <JudgeWorkspace
+          round={round}
           applications={applications.map((application) => ({
             id: application.id,
             teamName: application.teamName,
             participantsFullName: application.participantsFullName,
             githubRepoUrl: application.githubRepoUrl,
             builtDescription: application.builtDescription,
-            groupName: application.assignment?.group.name ?? null,
+            groupName: groupNameOf(application),
             score: application.scores[0] ?? null,
           }))}
           scoreAction={scoreAction}

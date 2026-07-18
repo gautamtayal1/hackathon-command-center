@@ -20,11 +20,13 @@ import {
   Copy,
   ExternalLink,
   Link,
+  LogOut,
   MoreHorizontal,
   PanelLeft,
   PanelLeftClose,
   Plus,
   GripVertical,
+  Send,
   Shuffle,
   Trophy,
   Trash2,
@@ -34,6 +36,7 @@ import {
 import {
   BUDGET_TYPES,
   DEFAULT_BUDGET_LINES,
+  FINALIST_COUNT,
   MAIN_TASK_LABEL,
   MAIN_TODO_TASKS,
   type BoardColumnId,
@@ -48,9 +51,11 @@ import {
   type JudgeGroup,
   type JudgeInput,
   type JudgingApplication,
+  type JudgingRoundStatus,
   type TaskInput,
 } from "@/lib/board";
 import { TaskCard } from "@/components/board/task-card";
+import { logout } from "@/lib/auth-actions";
 
 type BoardActions = {
   autoGenerateJudgeGroups: () => Promise<void>;
@@ -72,6 +77,8 @@ type BoardActions = {
   updateJudge: (id: string, input: JudgeInput) => Promise<void>;
   deleteJudge: (id: string) => Promise<void>;
   deleteApplication: (id: string) => Promise<void>;
+  sendJudgeMagicLink: (id: string) => Promise<void>;
+  sendAllJudgeMagicLinks: () => Promise<void>;
 };
 
 type BoardProps = {
@@ -84,6 +91,7 @@ type BoardProps = {
   applications: HackathonApplication[];
   judgeGroups: JudgeGroup[];
   judgingApplications: JudgingApplication[];
+  judgingRoundStatus: JudgingRoundStatus;
   actions: BoardActions;
 };
 
@@ -343,6 +351,7 @@ export function Board({
   applications,
   judgeGroups,
   judgingApplications,
+  judgingRoundStatus,
   actions,
 }: BoardProps) {
   const router = useRouter();
@@ -585,6 +594,7 @@ export function Board({
       email,
       groupId: group.id,
       sortOrder: group.judges.length,
+      inviteStatus: "CONTACT",
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -722,9 +732,22 @@ export function Board({
               judges={optimisticJudges}
               groups={hydratedJudgeGroups}
               judgingApplications={judgingApplications}
+              roundStatus={judgingRoundStatus}
               pending={false}
               onCreate={createJudge}
               onUpdate={updateJudge}
+              onSendLink={(id) =>
+                runMutation(
+                  () => actions.sendJudgeMagicLink(id),
+                  "Could not send the judge link.",
+                )
+              }
+              onSendAllLinks={() =>
+                runMutation(
+                  () => actions.sendAllJudgeMagicLinks(),
+                  "Could not send judge links.",
+                )
+              }
               onMoveJudgeToGroup={(judgeId, groupId, position) =>
                 runMutation(
                   () => actions.moveJudgeToGroup(judgeId, groupId, position),
@@ -1068,6 +1091,16 @@ function TopBar({
         >
           <MoreHorizontal className="size-5" aria-hidden="true" />
         </button>
+        <form action={logout}>
+          <button
+            type="submit"
+            title="Log out"
+            aria-label="Log out"
+            className="grid size-9 place-items-center rounded-full text-[#ececec] transition hover:bg-[#1f1f1f]"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+          </button>
+        </form>
       </div>
     </header>
   );
@@ -1672,20 +1705,142 @@ function ApplicationsWorkspace({
   );
 }
 
+function RoundStatusBanner({ status }: { status: JudgingRoundStatus }) {
+  const inRoundTwo = status.currentRound >= 2;
+  const round1Label = `${status.round1Completed}/${status.round1Required || 0} scores`;
+
+  return (
+    <div
+      className={`flex flex-col gap-2 rounded-[20px] border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
+        inRoundTwo
+          ? "border-[#3a5f2a] bg-[#16220f]"
+          : "border-[#303030] bg-[#212121]"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className={`inline-flex items-center gap-2 rounded-[20px] px-3 py-1 text-xs font-semibold ${
+            inRoundTwo
+              ? "bg-[#2b4a1c] text-[#c7f0a9]"
+              : "bg-[#303030] text-[#d6d6d6]"
+          }`}
+        >
+          <Trophy className="size-3.5" aria-hidden="true" />
+          {inRoundTwo ? "Round 2 — Finals" : "Round 1"}
+        </span>
+        <p className="text-sm font-medium text-[#b4b4b4]">
+          {inRoundTwo
+            ? `${status.finalistCount} finalists · ${status.round2Completed}/${
+                status.round2Required || 0
+              } final scores in`
+            : status.round1Required === 0
+              ? "Add judges, generate groups, and let teams apply to begin round 1."
+              : `${round1Label} in. Round 2 opens automatically once every judge finishes.`}
+        </p>
+      </div>
+      {!inRoundTwo && status.round1Required > 0 ? (
+        <div className="h-2 w-full max-w-[220px] overflow-hidden rounded-full bg-[#303030]">
+          <div
+            className="h-full rounded-full bg-[#8fd46a] transition-all"
+            style={{
+              width: `${Math.min(
+                100,
+                Math.round(
+                  (status.round1Completed / status.round1Required) * 100,
+                ),
+              )}%`,
+            }}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function FinalsRanking({
+  applications,
+}: {
+  applications: JudgingApplication[];
+}) {
+  const finalists = applications
+    .filter((application) => application.isFinalist)
+    .toSorted((a, b) => (b.round2Average ?? 0) - (a.round2Average ?? 0));
+
+  if (!finalists.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-[20px] bg-[#2f2f2f] p-3">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
+            Finals ranking
+          </h3>
+          <p className="mt-0.5 text-xs font-medium text-[#8f8f8f]">
+            Round 2 — every judge scores all finalists.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+          <Trophy className="size-3.5" aria-hidden="true" />
+          {finalists.length}
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[420px] border-separate border-spacing-y-2 text-left">
+          <thead>
+            <tr className="text-xs font-medium text-[#8f8f8f]">
+              <th className="w-12 px-3 py-1">#</th>
+              <th className="px-3 py-1">Startup</th>
+              <th className="px-3 py-1">Final votes</th>
+              <th className="px-3 py-1">Final avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            {finalists.map((application, index) => (
+              <tr
+                key={application.id}
+                className="text-sm font-medium text-[#f4f4f4]"
+              >
+                <td className="rounded-l-[20px] bg-[#212121] px-3 py-3 text-xs font-semibold text-[#9b9b9b]">
+                  {formatRowNumber(index + 1)}
+                </td>
+                <td className="bg-[#212121] px-3 py-3">
+                  {application.teamName}
+                </td>
+                <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                  {application.round2ScoreCount}
+                </td>
+                <td className="rounded-r-[20px] bg-[#212121] px-3 py-3 text-white">
+                  {formatScore(application.round2Average)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function JudgesWorkspace({
   judges,
   groups,
   judgingApplications,
+  roundStatus,
   pending,
   onCreate,
   onUpdate,
   onMoveJudgeToGroup,
   onAutoGroups,
   onDelete,
+  onSendLink,
+  onSendAllLinks,
 }: {
   judges: Judge[];
   groups: JudgeGroup[];
   judgingApplications: JudgingApplication[];
+  roundStatus: JudgingRoundStatus;
   pending: boolean;
   onCreate: (formData: FormData) => void;
   onUpdate: (id: string, formData: FormData) => void;
@@ -1696,6 +1851,8 @@ function JudgesWorkspace({
   ) => void;
   onAutoGroups: () => void;
   onDelete: (id: string) => void;
+  onSendLink: (id: string) => void;
+  onSendAllLinks: () => void;
 }) {
   const [draggedJudgeId, setDraggedJudgeId] = useState<string | null>(null);
   const [dropTargetGroupId, setDropTargetGroupId] = useState<string | null>(
@@ -1757,7 +1914,7 @@ function JudgesWorkspace({
             Judges
           </h2>
           <p className="mt-1 text-sm font-medium text-[#8f8f8f]">
-            Groups of two, four criteria, one shared application table.
+            Groups of two, five criteria, two rounds of scoring.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1770,6 +1927,15 @@ function JudgesWorkspace({
           <button
             type="button"
             disabled={pending || judges.length === 0}
+            onClick={onSendAllLinks}
+            className="inline-flex h-9 items-center gap-2 rounded-[20px] border border-[#4a4a4a] bg-[#212121] px-3 text-sm font-semibold text-[#f4f4f4] transition hover:bg-[#2a2a2a] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Send className="size-4" aria-hidden="true" />
+            Send all links
+          </button>
+          <button
+            type="button"
+            disabled={pending || judges.length === 0}
             onClick={onAutoGroups}
             className="inline-flex h-9 items-center gap-2 rounded-[20px] bg-[#f4f4f4] px-3 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
           >
@@ -1778,6 +1944,8 @@ function JudgesWorkspace({
           </button>
         </div>
       </div>
+
+      <RoundStatusBanner status={roundStatus} />
 
       <section className="rounded-[20px] bg-[#2f2f2f] p-3">
         <div className="space-y-2">
@@ -1793,6 +1961,14 @@ function JudgesWorkspace({
                 data-judge-optimistic={isOptimisticJudge ? "true" : undefined}
                 action={(formData) => onUpdate(judge.id, formData)}
                 className="grid gap-2 rounded-[20px] bg-[#212121] p-2.5 md:grid-cols-[40px_minmax(0,1fr)_minmax(0,1fr)_150px_auto]"
+                data-judge-invite={judge.inviteStatus}
+                title={
+                  judge.inviteStatus === "ACCEPTED"
+                    ? "Judge has signed in"
+                    : judge.inviteStatus === "PENDING"
+                      ? "Magic link sent"
+                      : undefined
+                }
               >
                 <span className="flex h-10 items-center justify-center rounded-[20px] bg-[#303030] text-xs font-semibold text-[#9b9b9b]">
                   {formatRowNumber(index + 1)}
@@ -1855,16 +2031,38 @@ function JudgesWorkspace({
                   }}
                   className="h-10 min-w-0 rounded-[20px] border border-transparent bg-[#171717] px-3 text-sm font-semibold text-[#d6d6d6] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444]"
                 />
-                <button
-                  type="button"
-                  title="Delete judge"
-                  aria-label="Delete judge"
-                  disabled={pending || isOptimisticJudge}
-                  onClick={() => onDelete(judge.id)}
-                  className="grid size-10 place-items-center rounded-[20px] text-[#8f8f8f] transition hover:bg-[#333] hover:text-white disabled:opacity-50"
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    title={
+                      judge.email
+                        ? "Send magic link"
+                        : "Add an email to send a link"
+                    }
+                    aria-label="Send magic link"
+                    disabled={pending || isOptimisticJudge || !judge.email}
+                    onClick={() => onSendLink(judge.id)}
+                    className={`grid size-10 place-items-center rounded-[20px] transition hover:bg-[#333] hover:text-white disabled:opacity-50 ${
+                      judge.inviteStatus === "ACCEPTED"
+                        ? "text-[#7ad17a]"
+                        : judge.inviteStatus === "PENDING"
+                          ? "text-[#e0b64a]"
+                          : "text-[#8f8f8f]"
+                    }`}
+                  >
+                    <Send className="size-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Delete judge"
+                    aria-label="Delete judge"
+                    disabled={pending || isOptimisticJudge}
+                    onClick={() => onDelete(judge.id)}
+                    className="grid size-10 place-items-center rounded-[20px] text-[#8f8f8f] transition hover:bg-[#333] hover:text-white disabled:opacity-50"
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </button>
+                </div>
               </form>
             );
           })}
@@ -2088,9 +2286,14 @@ function JudgesWorkspace({
 
         <div className="rounded-[20px] bg-[#2f2f2f] p-3">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
-              Ranking
-            </h3>
+            <div>
+              <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
+                Round 1 ranking
+              </h3>
+              <p className="mt-0.5 text-xs font-medium text-[#8f8f8f]">
+                Top {FINALIST_COUNT} advance to the finals automatically.
+              </p>
+            </div>
             <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
               <Trophy className="size-3.5" aria-hidden="true" />
               {judgingApplications.length}
@@ -2098,7 +2301,7 @@ function JudgesWorkspace({
           </div>
           {judgingApplications.length ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-separate border-spacing-y-2 text-left">
+              <table className="w-full min-w-[820px] border-separate border-spacing-y-2 text-left">
                 <thead>
                   <tr className="text-xs font-medium text-[#8f8f8f]">
                     <th className="w-12 px-3 py-1">#</th>
@@ -2107,48 +2310,70 @@ function JudgesWorkspace({
                     <th className="px-3 py-1">Votes</th>
                     <th className="px-3 py-1">Avg</th>
                     <th className="px-3 py-1">Pitch</th>
-                    <th className="px-3 py-1">Idea</th>
+                    <th className="px-3 py-1">Iter</th>
+                    <th className="px-3 py-1">Strength</th>
                     <th className="px-3 py-1">UI/UX</th>
                     <th className="px-3 py-1">Exec</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {judgingApplications.map((application, index) => (
-                    <tr
-                      key={application.id}
-                      className="text-sm font-medium text-[#f4f4f4]"
-                    >
-                      <td className="rounded-l-[20px] bg-[#212121] px-3 py-3 text-xs font-semibold text-[#9b9b9b]">
-                        {formatRowNumber(index + 1)}
-                      </td>
-                      <td className="max-w-[180px] bg-[#212121] px-3 py-3">
-                        <span className="block truncate">
-                          {application.teamName}
-                        </span>
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {application.groupName ?? "Unassigned"}
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {application.scoreCount}
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-white">
-                        {formatScore(application.averageScore)}
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {formatScore(application.pitchAverage)}
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {formatScore(application.potentialAverage)}
-                      </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {formatScore(application.uiUxAverage)}
-                      </td>
-                      <td className="rounded-r-[20px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
-                        {formatScore(application.executionAverage)}
-                      </td>
-                    </tr>
-                  ))}
+                  {judgingApplications.map((application, index) => {
+                    const cell = application.isFinalist
+                      ? "bg-[#1c2a14]"
+                      : "bg-[#212121]";
+
+                    return (
+                      <tr
+                        key={application.id}
+                        className="text-sm font-medium text-[#f4f4f4]"
+                      >
+                        <td
+                          className={`rounded-l-[20px] px-3 py-3 text-xs font-semibold text-[#9b9b9b] ${cell}`}
+                        >
+                          {formatRowNumber(index + 1)}
+                        </td>
+                        <td className={`max-w-[180px] px-3 py-3 ${cell}`}>
+                          <span className="flex items-center gap-2">
+                            {application.isFinalist ? (
+                              <Trophy
+                                className="size-3.5 shrink-0 text-[#8fd46a]"
+                                aria-label="Finalist"
+                              />
+                            ) : null}
+                            <span className="block truncate">
+                              {application.teamName}
+                            </span>
+                          </span>
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {application.groupName ?? "Unassigned"}
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {application.scoreCount}
+                        </td>
+                        <td className={`px-3 py-3 text-white ${cell}`}>
+                          {formatScore(application.averageScore)}
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {formatScore(application.pitchAverage)}
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {formatScore(application.iterationAverage)}
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {formatScore(application.potentialAverage)}
+                        </td>
+                        <td className={`px-3 py-3 text-[#d6d6d6] ${cell}`}>
+                          {formatScore(application.uiUxAverage)}
+                        </td>
+                        <td
+                          className={`rounded-r-[20px] px-3 py-3 text-[#d6d6d6] ${cell}`}
+                        >
+                          {formatScore(application.executionAverage)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -2158,6 +2383,8 @@ function JudgesWorkspace({
             </div>
           )}
         </div>
+
+        <FinalsRanking applications={judgingApplications} />
       </section>
     </section>
   );

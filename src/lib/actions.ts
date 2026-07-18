@@ -26,7 +26,11 @@ import {
 } from "@/lib/hackathons";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
+import {
+  ensureApplicationAssignments,
+  getActiveHackathon,
+  maybePromoteToRoundTwo,
+} from "@/lib/tasks";
 
 function cleanInput(input: TaskInput) {
   const title = input.title.trim();
@@ -732,6 +736,80 @@ export async function deleteJudge(id: string) {
   revalidatePath("/preview");
 }
 
+async function sendMagicLinkToJudge(
+  judge: { id: string; email: string | null },
+  origin: string,
+) {
+  const email = judge.email ? cleanEmail(judge.email) : "";
+
+  if (!email) {
+    throw new Error("Add an email for this judge before sending a link.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+        "/judge",
+      )}`,
+    },
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await prisma.judge.update({
+    where: { id: judge.id },
+    data: {
+      inviteStatus: "PENDING",
+      invitedAt: new Date(),
+    },
+  });
+}
+
+export async function sendJudgeMagicLink(id: string) {
+  await requireAdminForJudge(id);
+  const judge = await prisma.judge.findUniqueOrThrow({
+    where: { id },
+    select: { id: true, email: true },
+  });
+
+  const origin = await getRequestOrigin();
+  await sendMagicLinkToJudge(judge, origin);
+
+  revalidatePath("/");
+  revalidatePath("/preview");
+}
+
+export async function sendAllJudgeMagicLinks() {
+  const { workspace } = await getAdminContext();
+  const hackathon = await getActiveHackathon(workspace.id);
+  const judges = await prisma.judge.findMany({
+    where: {
+      hackathonId: hackathon.id,
+      inviteStatus: { not: "REVOKED" },
+      email: { not: null },
+    },
+    select: { id: true, email: true },
+  });
+
+  if (!judges.length) {
+    throw new Error("Add judges with emails before sending links.");
+  }
+
+  const origin = await getRequestOrigin();
+
+  for (const judge of judges) {
+    await sendMagicLinkToJudge(judge, origin);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/preview");
+}
+
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
   message: string;
@@ -859,36 +937,57 @@ export async function upsertJudgeScore(
 ) {
   const { judge } = await requireJudgeForHackathon(hackathonId);
 
-  if (!judge.groupId) {
-    throw new Error("You are not assigned to a judging group yet.");
+  const hackathon = await prisma.hackathon.findUnique({
+    where: { id: hackathonId },
+    select: { currentRound: true },
+  });
+
+  if (!hackathon) {
+    throw new Error("Hackathon not found.");
   }
+
+  const round = hackathon.currentRound >= 2 ? 2 : 1;
 
   const application = await prisma.application.findFirst({
     where: { id: applicationId, hackathonId },
-    select: { id: true },
+    select: { id: true, isFinalist: true },
   });
 
   if (!application) {
     throw new Error("Application not found.");
   }
 
-  const assignment = await prisma.applicationAssignment.findFirst({
-    where: {
-      hackathonId,
-      applicationId: application.id,
-      groupId: judge.groupId,
-    },
-    select: { id: true },
-  });
+  if (round === 1) {
+    // Round 1: judges only score the projects assigned to their group.
+    if (!judge.groupId) {
+      throw new Error("You are not assigned to a judging group yet.");
+    }
 
-  if (!assignment) {
-    throw new Error("This application is assigned to another judging group.");
+    const assignment = await prisma.applicationAssignment.findFirst({
+      where: {
+        hackathonId,
+        applicationId: application.id,
+        groupId: judge.groupId,
+      },
+      select: { id: true },
+    });
+
+    if (!assignment) {
+      throw new Error("This application is assigned to another judging group.");
+    }
+  } else if (!application.isFinalist) {
+    // Round 2: every judge scores the finalists, and only the finalists.
+    throw new Error("Round 2 scoring is limited to the finalist teams.");
   }
 
   const pitchScore = cleanScoreValue(formData.get("pitchScore"), "Pitch");
+  const iterationScore = cleanScoreValue(
+    formData.get("iterationScore"),
+    "Iteration",
+  );
   const potentialScore = cleanScoreValue(
     formData.get("potentialScore"),
-    "Potential",
+    "Strength",
   );
   const uiUxScore = cleanScoreValue(formData.get("uiUxScore"), "UI/UX");
   const executionScore = cleanScoreValue(
@@ -896,20 +995,23 @@ export async function upsertJudgeScore(
     "Execution",
   );
   const score = Math.round(
-    (pitchScore + potentialScore + uiUxScore + executionScore) / 4,
+    (pitchScore + iterationScore + potentialScore + uiUxScore + executionScore) /
+      5,
   );
   const note = String(formData.get("note") ?? "").trim();
 
   await prisma.score.upsert({
     where: {
-      applicationId_judgeId: {
+      applicationId_judgeId_round: {
         applicationId: application.id,
         judgeId: judge.id,
+        round,
       },
     },
     update: {
       score,
       pitchScore,
+      iterationScore,
       potentialScore,
       uiUxScore,
       executionScore,
@@ -919,8 +1021,10 @@ export async function upsertJudgeScore(
       hackathonId,
       applicationId: application.id,
       judgeId: judge.id,
+      round,
       score,
       pitchScore,
+      iterationScore,
       potentialScore,
       uiUxScore,
       executionScore,
@@ -928,7 +1032,14 @@ export async function upsertJudgeScore(
     },
   });
 
+  // A completed round-1 submission may be the last one needed — check whether
+  // the top 5 finalists should now be locked in and round 2 opened.
+  if (round === 1) {
+    await maybePromoteToRoundTwo(hackathonId);
+  }
+
   revalidatePath(`/judge/${hackathonId}`);
+  revalidatePath("/judge");
   revalidatePath("/");
 }
 

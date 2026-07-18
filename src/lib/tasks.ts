@@ -11,6 +11,7 @@ import {
   BOARD_COLUMNS,
   DEFAULT_BUDGET_LINES,
   DELETED_MAIN_TASK_LABEL,
+  FINALIST_COUNT,
   MAIN_TASK_LABEL,
   MAIN_TODO_TASKS,
   type BoardTask,
@@ -19,6 +20,7 @@ import {
   type HackathonSummary,
   type HackathonApplication,
   type JudgingApplication,
+  type JudgingRoundStatus,
   type Judge,
 } from "@/lib/board";
 import { prisma } from "@/lib/prisma";
@@ -82,6 +84,7 @@ function serializeHackathon(hackathon: Hackathon): HackathonSummary {
     lumaUrl: hackathon.lumaUrl,
     startsAt: hackathon.startsAt ? hackathon.startsAt.toISOString() : null,
     isActive: hackathon.isActive,
+    currentRound: hackathon.currentRound,
     createdAt: hackathon.createdAt.toISOString(),
   };
 }
@@ -93,6 +96,7 @@ function serializeJudge(judge: PrismaJudge): Judge {
     email: judge.email,
     groupId: judge.groupId,
     sortOrder: judge.sortOrder,
+    inviteStatus: judge.inviteStatus,
     createdAt: judge.createdAt.toISOString(),
     updatedAt: judge.updatedAt.toISOString(),
   };
@@ -112,15 +116,21 @@ function serializeApplication(application: PrismaApplication): HackathonApplicat
 
 function scoreTotal(score: Pick<
   Score,
-  "score" | "pitchScore" | "potentialScore" | "uiUxScore" | "executionScore"
+  | "score"
+  | "pitchScore"
+  | "iterationScore"
+  | "potentialScore"
+  | "uiUxScore"
+  | "executionScore"
 >) {
   const criteriaTotal =
     score.pitchScore +
+    score.iterationScore +
     score.potentialScore +
     score.uiUxScore +
     score.executionScore;
 
-  return criteriaTotal > 0 ? criteriaTotal : score.score * 4;
+  return criteriaTotal > 0 ? criteriaTotal : score.score * 5;
 }
 
 function average(values: number[]) {
@@ -495,37 +505,43 @@ export async function getJudgingApplications(
   return applications
     .map((application) => {
       const assignedGroupId = application.assignment?.group.id ?? null;
-      const relevantScores = application.scores.filter(
-        (score) => score.judge.groupId === assignedGroupId,
+      // Round 1 scores only count when they come from a judge in the group the
+      // project was assigned to. Round 2 is scored by every judge.
+      const round1Scores = application.scores.filter(
+        (score) =>
+          score.round === 1 && score.judge.groupId === assignedGroupId,
       );
-      const totals = relevantScores.map(scoreTotal);
-      const completedScores = relevantScores.filter(
-        (score) => scoreTotal(score) > 0,
+      const round2Scores = application.scores.filter(
+        (score) => score.round === 2,
       );
+      const totals = round1Scores.map(scoreTotal);
+      const round2Totals = round2Scores.map(scoreTotal);
 
       return {
         ...serializeApplication(application),
-        groupId: application.assignment?.group.id ?? null,
+        groupId: assignedGroupId,
         groupName: application.assignment?.group.name ?? null,
-        scoreCount: completedScores.length,
+        isFinalist: application.isFinalist,
+        scoreCount: round1Scores.length,
         averageScore: average(totals),
         totalScore: totals.reduce((total, value) => total + value, 0),
         pitchAverage: average(
-          completedScores.map((score) => score.pitchScore).filter(Boolean),
+          round1Scores.map((score) => score.pitchScore).filter(Boolean),
+        ),
+        iterationAverage: average(
+          round1Scores.map((score) => score.iterationScore).filter(Boolean),
         ),
         potentialAverage: average(
-          completedScores
-            .map((score) => score.potentialScore)
-            .filter(Boolean),
+          round1Scores.map((score) => score.potentialScore).filter(Boolean),
         ),
         uiUxAverage: average(
-          completedScores.map((score) => score.uiUxScore).filter(Boolean),
+          round1Scores.map((score) => score.uiUxScore).filter(Boolean),
         ),
         executionAverage: average(
-          completedScores
-            .map((score) => score.executionScore)
-            .filter(Boolean),
+          round1Scores.map((score) => score.executionScore).filter(Boolean),
         ),
+        round2ScoreCount: round2Scores.length,
+        round2Average: average(round2Totals),
       };
     })
     .toSorted((a, b) => {
@@ -535,6 +551,130 @@ export async function getJudgingApplications(
 
       return a.createdAt.localeCompare(b.createdAt);
     });
+}
+
+/**
+ * Round 1 is complete once every judge has scored every project assigned to
+ * their group. Returns the required and completed score counts.
+ */
+async function getRoundOneCompletion(hackathonId: string) {
+  const groups = await prisma.judgeGroup.findMany({
+    where: { hackathonId },
+    include: {
+      _count: { select: { judges: true, assignments: true } },
+    },
+  });
+
+  const required = groups.reduce(
+    (total, group) => total + group._count.judges * group._count.assignments,
+    0,
+  );
+  const completed = await prisma.score.count({
+    where: { hackathonId, round: 1 },
+  });
+
+  return { required, completed, complete: required > 0 && completed >= required };
+}
+
+/**
+ * When round 1 finishes, freeze the top {@link FINALIST_COUNT} projects (by
+ * combined round-1 score) as finalists and move the hackathon into round 2.
+ * Idempotent: does nothing once the hackathon is already in round 2.
+ */
+export async function maybePromoteToRoundTwo(hackathonId: string) {
+  const hackathon = await prisma.hackathon.findUnique({
+    where: { id: hackathonId },
+    select: { currentRound: true },
+  });
+
+  if (!hackathon || hackathon.currentRound >= 2) {
+    return;
+  }
+
+  const { complete } = await getRoundOneCompletion(hackathonId);
+
+  if (!complete) {
+    return;
+  }
+
+  const applications = await prisma.application.findMany({
+    where: { hackathonId },
+    include: {
+      assignment: { select: { groupId: true } },
+      scores: { include: { judge: { select: { groupId: true } } } },
+    },
+  });
+
+  const ranked = applications
+    .map((application) => {
+      const assignedGroupId = application.assignment?.groupId ?? null;
+      const totals = application.scores
+        .filter(
+          (score) =>
+            score.round === 1 && score.judge.groupId === assignedGroupId,
+        )
+        .map(scoreTotal);
+
+      return {
+        id: application.id,
+        average: average(totals) ?? 0,
+        createdAt: application.createdAt,
+      };
+    })
+    .sort((a, b) => {
+      if (b.average !== a.average) {
+        return b.average - a.average;
+      }
+
+      return a.createdAt.getTime() - b.createdAt.getTime();
+    });
+
+  const finalistIds = ranked.slice(0, FINALIST_COUNT).map((entry) => entry.id);
+
+  await prisma.$transaction([
+    prisma.application.updateMany({
+      where: { hackathonId },
+      data: { isFinalist: false },
+    }),
+    prisma.application.updateMany({
+      where: { hackathonId, id: { in: finalistIds } },
+      data: { isFinalist: true },
+    }),
+    prisma.hackathon.update({
+      where: { id: hackathonId },
+      data: { currentRound: 2 },
+    }),
+  ]);
+}
+
+export async function getJudgingRoundStatus(
+  workspaceId?: string,
+): Promise<JudgingRoundStatus> {
+  const hackathon = await getActiveHackathon(workspaceId);
+  const { required, completed, complete } = await getRoundOneCompletion(
+    hackathon.id,
+  );
+
+  const finalistCount = await prisma.application.count({
+    where: { hackathonId: hackathon.id, isFinalist: true },
+  });
+  const judgeCount = await prisma.judge.count({
+    where: { hackathonId: hackathon.id },
+  });
+
+  const round2Completed = await prisma.score.count({
+    where: { hackathonId: hackathon.id, round: 2 },
+  });
+
+  return {
+    currentRound: hackathon.currentRound,
+    round1Required: required,
+    round1Completed: completed,
+    round1Complete: complete,
+    round2Required: finalistCount * judgeCount,
+    round2Completed,
+    finalistCount,
+  };
 }
 
 export async function getDashboardData(workspaceId?: string) {
@@ -549,6 +689,7 @@ export async function getDashboardData(workspaceId?: string) {
     applications,
     judgeGroups,
     judgingApplications,
+    judgingRoundStatus,
   ] = await Promise.all([
     getHackathons(workspaceId),
     getBoardTasks(workspaceId),
@@ -557,6 +698,7 @@ export async function getDashboardData(workspaceId?: string) {
     getApplications(workspaceId),
     getJudgeGroups(workspaceId),
     getJudgingApplications(workspaceId),
+    getJudgingRoundStatus(workspaceId),
   ]);
 
   const activeHackathon =
@@ -571,5 +713,6 @@ export async function getDashboardData(workspaceId?: string) {
     applications,
     judgeGroups,
     judgingApplications,
+    judgingRoundStatus,
   };
 }

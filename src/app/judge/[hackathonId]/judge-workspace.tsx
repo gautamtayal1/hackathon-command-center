@@ -1,4 +1,10 @@
 import { ExternalLink } from "lucide-react";
+import { SCORE_CRITERIA, type ScoreCriterionName } from "@/lib/board";
+
+type JudgeScore = {
+  score: number;
+  note: string;
+} & Record<ScoreCriterionName, number>;
 
 type JudgeApplication = {
   id: string;
@@ -7,31 +13,28 @@ type JudgeApplication = {
   githubRepoUrl: string;
   builtDescription: string;
   groupName: string | null;
-  score: {
-    score: number;
-    pitchScore: number;
-    potentialScore: number;
-    uiUxScore: number;
-    executionScore: number;
-    note: string;
-  } | null;
+  score: JudgeScore | null;
 };
 
 export function JudgeWorkspace({
   applications,
   scoreAction,
+  round,
 }: {
   applications: JudgeApplication[];
   scoreAction: (applicationId: string, formData: FormData) => Promise<void>;
+  round: number;
 }) {
   if (!applications.length) {
     return (
       <div className="rounded-[20px] border border-[#303030] bg-[#212121] p-6">
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
-          No applications yet
+          {round === 2 ? "No finalists yet" : "No teams assigned yet"}
         </h2>
         <p className="mt-2 text-sm font-medium leading-6 text-[#b4b4b4]">
-          Teams will appear here when they submit the public form.
+          {round === 2
+            ? "The finalist teams will appear here once round 1 is complete."
+            : "Teams will appear here once the organizers assign your group."}
         </p>
       </div>
     );
@@ -48,7 +51,7 @@ export function JudgeWorkspace({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-[#8f8f8f]">
-                Team {index + 1}
+                {round === 2 ? "Finalist" : "Team"} {index + 1}
                 {application.groupName ? ` / ${application.groupName}` : ""}
               </p>
               <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">
@@ -66,27 +69,15 @@ export function JudgeWorkspace({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-4">
-            <ScoreInput
-              name="pitchScore"
-              label="Pitch"
-              value={application.score?.pitchScore}
-            />
-            <ScoreInput
-              name="potentialScore"
-              label="Potential"
-              value={application.score?.potentialScore}
-            />
-            <ScoreInput
-              name="uiUxScore"
-              label="UI/UX"
-              value={application.score?.uiUxScore}
-            />
-            <ScoreInput
-              name="executionScore"
-              label="Execution"
-              value={application.score?.executionScore}
-            />
+          <div className="mt-5 grid gap-2 sm:grid-cols-5">
+            {SCORE_CRITERIA.map((criterion) => (
+              <ScoreInput
+                key={criterion.name}
+                name={criterion.name}
+                label={criterion.label}
+                value={application.score?.[criterion.name]}
+              />
+            ))}
           </div>
 
           <div className="mt-4 grid gap-3 border-t border-[#303030] pt-4 sm:grid-cols-[minmax(0,1fr)_160px]">

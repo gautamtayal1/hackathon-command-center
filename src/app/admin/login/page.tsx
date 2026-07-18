@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { AdminLoginForm } from "@/app/login/login-form";
+import { AdminLoginForm } from "@/app/admin/login/admin-login-form";
 
 type AdminLoginPageProps = {
   searchParams: Promise<{
@@ -37,7 +37,7 @@ export default async function AdminLoginPage({
             Admin login
           </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-[#9b9b9b]">
-            Private command center access with your email and password.
+            Private command center access with the shared admin password.
           </p>
         </div>
 
