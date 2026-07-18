@@ -1,4 +1,5 @@
 import { UsersRound } from "lucide-react";
+import { AutoRefresh } from "@/app/display/auto-refresh";
 import { AccessDeniedError, getAdminContext } from "@/lib/auth";
 import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
 import { prisma } from "@/lib/prisma";
@@ -57,6 +58,7 @@ export default async function DisplayPage() {
 
   return (
     <main className="min-h-screen bg-black px-6 py-8 text-[#f4f4f4]">
+      <AutoRefresh />
       <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#9b9b9b]">
