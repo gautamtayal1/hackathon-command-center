@@ -13,3 +13,5 @@ prisma/dev.db
 prisma/dev.db-journal
 src/generated/prisma
 .claude-logs
+.vercel
+.env*

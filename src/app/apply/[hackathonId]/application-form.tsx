@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import {
   submitApplication,
   type ApplicationFormState,
@@ -103,13 +103,17 @@ export function ApplicationForm({
 
   if (state.status === "success") {
     return (
-      <div className="grid min-h-[260px] place-items-center rounded-[20px] border border-[#303030] bg-[#212121] px-6 text-center shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
-        <div>
-          <p className="text-5xl font-semibold tracking-[-0.05em] text-white">
-            OK
-          </p>
-          <p className="mt-3 text-sm font-medium text-[#9b9b9b]">
-            Application submitted.
+      <div className="grid min-h-[360px] place-items-center rounded-[20px] border border-[#303030] bg-[#212121] px-6 py-14 text-center shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
+        <div className="flex max-w-[420px] flex-col items-center">
+          <span className="grid size-16 place-items-center rounded-full bg-[#f4f4f4] shadow-[0_12px_34px_rgba(0,0,0,0.38)]">
+            <Check className="size-8 text-black" strokeWidth={3} aria-hidden="true" />
+          </span>
+          <h2 className="mt-7 text-3xl font-semibold tracking-[-0.045em] text-white sm:text-4xl">
+            You&apos;re all set
+          </h2>
+          <p className="mt-3 text-base font-medium text-[#9b9b9b]">
+            Your submission has been received. Thanks for taking part — the
+            judges will review it and results will be shared soon.
           </p>
         </div>
       </div>
