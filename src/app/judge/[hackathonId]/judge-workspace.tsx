@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { SCORE_CRITERIA, type ScoreCriterionName } from "@/lib/board";
 
@@ -23,11 +23,13 @@ export function JudgeWorkspace({
   submitAction,
   round,
   alreadySubmitted,
+  storagePrefix,
 }: {
   applications: JudgeApplication[];
   submitAction: (formData: FormData) => Promise<void>;
   round: number;
   alreadySubmitted: boolean;
+  storagePrefix: string;
 }) {
   if (!applications.length) {
     return (
@@ -52,6 +54,7 @@ export function JudgeWorkspace({
           application={application}
           index={index}
           round={round}
+          storageKey={`${storagePrefix}:${application.id}`}
         />
       ))}
 
@@ -83,10 +86,12 @@ function TeamScoreCard({
   application,
   index,
   round,
+  storageKey,
 }: {
   application: JudgeApplication;
   index: number;
   round: number;
+  storageKey: string;
 }) {
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(
@@ -98,6 +103,50 @@ function TeamScoreCard({
       ]),
     ),
   );
+
+  // Rehydrate any in-progress scores this judge already typed on this device.
+  // Runs once on mount (client only, so it can't cause a hydration mismatch).
+  // Locally saved edits win over the server copy because they are the most
+  // recent thing the judge entered — even if a submit later crashed.
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (hydrated.current) {
+      return;
+    }
+    hydrated.current = true;
+    try {
+      const saved = window.localStorage.getItem(storageKey);
+      if (!saved) {
+        return;
+      }
+      const parsed = JSON.parse(saved) as Record<string, unknown>;
+      setValues((current) => {
+        const next = { ...current };
+        for (const criterion of SCORE_CRITERIA) {
+          const value = parsed[criterion.name];
+          if (typeof value === "string") {
+            next[criterion.name] = value;
+          }
+        }
+        return next;
+      });
+    } catch {
+      // Corrupt/blocked storage — fall back to the server-provided scores.
+    }
+  }, [storageKey]);
+
+  // Persist every keystroke so a crash, refresh, or expired session never
+  // loses what the judge has entered.
+  useEffect(() => {
+    if (!hydrated.current) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(values));
+    } catch {
+      // Storage full or unavailable — nothing else we can do here.
+    }
+  }, [storageKey, values]);
 
   const average = useMemo(() => {
     const entered = SCORE_CRITERIA.map((criterion) =>

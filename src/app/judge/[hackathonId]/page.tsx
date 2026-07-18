@@ -123,6 +123,7 @@ export default async function JudgeHackathonPage({
         <JudgeWorkspace
           round={round}
           alreadySubmitted={alreadySubmitted}
+          storagePrefix={`draki:scores:${judge.id}:${hackathonId}:r${round}`}
           applications={applications.map((application) => ({
             id: application.id,
             teamName: application.teamName,
