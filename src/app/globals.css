@@ -1,21 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7fbfb;
-  --foreground: #111827;
-  --muted: #667085;
-  --panel: #ffffff;
-  --panel-strong: #f2fbfb;
-  --line: #d8efed;
-  --pink: #f3197e;
-  --pink-soft: #ffe3f0;
-  --pink-line: #ffacd0;
-  --pink-ink: #9d064c;
-  --azure: #15b5b0;
-  --azure-soft: #dcfbf8;
-  --azure-line: #a8e9e5;
-  --azure-ink: #0c6865;
-  --ink: #0f172a;
+  --background: #000000;
+  --foreground: #f4f4f4;
+  --muted: #b4b4b4;
+  --panel: #2f2f2f;
+  --panel-strong: #212121;
+  --line: #303030;
+  --accent: #f4f4f4;
+  --accent-ink: #000000;
+  --ink: #f4f4f4;
 }
 
 * {
@@ -30,12 +24,15 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(135deg, rgba(21, 181, 176, 0.12), transparent 34%),
-    linear-gradient(315deg, rgba(243, 25, 126, 0.09), transparent 34%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    var(--font-body),
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 button,
@@ -53,9 +50,42 @@ button:disabled {
   cursor: not-allowed;
 }
 
+:where(button, a, input, select):focus {
+  outline: none;
+}
+
+:where(button, a, input, select):focus-visible {
+  outline: 2px solid #f4f4f4;
+  outline-offset: 2px;
+}
+
+[data-application-control] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+[data-application-control]:focus,
+[data-application-control]:focus-visible,
+[data-application-control]:invalid {
+  outline: none;
+}
+
 ::selection {
-  background: var(--pink-soft);
-  color: var(--ink);
+  background: #4d4d4d;
+  color: #fff;
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: #4d4d4d;
+  color: #fff;
+  text-shadow: none;
+}
+
+input::selection,
+textarea::selection {
+  background: #4d4d4d;
+  color: #fff;
 }
 
 .font-display {

@@ -5,16 +5,169 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+}
+
+enum JudgeInviteStatus {
+  CONTACT
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model UserProfile {
+  id               String            @id
+  email            String            @unique
+  name             String            @default("")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  memberships      WorkspaceMember[]
+  judgeAssignments Judge[]
+
+  @@index([email])
+}
+
+model Workspace {
+  id         String            @id @default(cuid())
+  name       String            @default("Personal account")
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  hackathons Hackathon[]
+  members    WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        WorkspaceRole @default(OWNER)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
 }
 
 model Hackathon {
   id            String        @id @default(cuid())
+  workspaceId   String?
+  workspace     Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name          String        @default("Hackathon")
+  lumaUrl       String?
+  startsAt      DateTime?
+  isActive      Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   tasks         Task[]
   budgetEntries BudgetEntry[]
+  judges        Judge[]
+  applications  Application[]
+  scores        Score[]
+  judgeGroups   JudgeGroup[]
+  assignments   ApplicationAssignment[]
+
+  @@index([isActive, startsAt])
+  @@index([workspaceId, isActive, startsAt])
+}
+
+model Judge {
+  id           String            @id @default(cuid())
+  hackathonId  String
+  hackathon    Hackathon         @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  groupId      String?
+  group        JudgeGroup?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  userId       String?
+  user         UserProfile?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name         String
+  email        String?
+  sortOrder    Int               @default(0)
+  inviteStatus JudgeInviteStatus @default(CONTACT)
+  invitedAt    DateTime?
+  acceptedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  scores       Score[]
+
+  @@index([hackathonId, email])
+  @@index([hackathonId, groupId, sortOrder])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model Application {
+  id                   String    @id @default(cuid())
+  hackathonId          String
+  hackathon            Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  teamName             String
+  participantsFullName String
+  githubRepoUrl        String
+  builtDescription     String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  scores               Score[]
+  assignment           ApplicationAssignment?
+
+  @@index([hackathonId, createdAt])
+}
+
+model JudgeGroup {
+  id          String                  @id @default(cuid())
+  hackathonId String
+  hackathon   Hackathon               @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  name        String
+  sortOrder   Int                     @default(0)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  judges      Judge[]
+  assignments ApplicationAssignment[]
+
+  @@index([hackathonId, sortOrder])
+}
+
+model ApplicationAssignment {
+  id            String      @id @default(cuid())
+  hackathonId   String
+  hackathon     Hackathon   @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  groupId       String
+  group         JudgeGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sortOrder     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([applicationId])
+  @@index([hackathonId, groupId])
+  @@index([groupId, sortOrder])
+}
+
+model Score {
+  id            String      @id @default(cuid())
+  hackathonId   String
+  hackathon     Hackathon   @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  judgeId       String
+  judge         Judge       @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  score         Int         @default(0)
+  pitchScore    Int         @default(0)
+  potentialScore Int        @default(0)
+  uiUxScore     Int         @default(0)
+  executionScore Int        @default(0)
+  note          String      @default("")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([applicationId, judgeId])
+  @@index([hackathonId])
+  @@index([judgeId])
 }
 
 model Task {

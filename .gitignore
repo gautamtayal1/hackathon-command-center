@@ -7,6 +7,8 @@ out
 dist
 coverage
 *.log
+*.tsbuildinfo
+VoiceInk/
 prisma/dev.db
 prisma/dev.db-journal
 src/generated/prisma

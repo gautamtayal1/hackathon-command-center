@@ -16,16 +16,16 @@ const displayFont = Outfit({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hackathon",
-    template: "%s | Hackathon",
+    default: "Draki",
+    template: "%s | Draki",
   },
-  description: "A command center for organizing hackathon tasks.",
+  description: "A dark command center for organizing hackathons.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#15b5b0",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

@@ -1,130 +1,123 @@
 "use client";
 
-import {
-  CalendarDays,
-  Check,
-  Circle,
-  Edit3,
-  Flag,
-  Tag,
-  Trash2,
-} from "lucide-react";
-import type { BoardTask, Priority } from "@/lib/board";
-
-const priorityStyles: Record<Priority, string> = {
-  LOW: "border-[var(--azure-line)] bg-[var(--azure-soft)] text-[var(--azure-ink)]",
-  MEDIUM: "border-slate-200 bg-slate-100 text-slate-700",
-  HIGH: "border-[var(--pink-line)] bg-[var(--pink-soft)] text-[var(--pink-ink)]",
-};
+import { useState } from "react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
+import type { BoardTask } from "@/lib/board";
 
 type TaskCardProps = {
   task: BoardTask;
   pending: boolean;
+  locked?: boolean;
   onToggle: (task: BoardTask) => void;
-  onEdit: (task: BoardTask) => void;
+  onEditTitle: (task: BoardTask, title: string) => void;
   onDelete: (id: string) => void;
 };
 
 export function TaskCard({
   task,
   pending,
+  locked = false,
   onToggle,
-  onEdit,
+  onEditTitle,
   onDelete,
 }: TaskCardProps) {
-  return (
-    <article
-      className={`rounded-lg border p-3 shadow-sm transition ${
-        task.completed
-          ? "border-[var(--azure-line)] bg-[var(--azure-soft)]/45"
-          : "border-slate-200 bg-white"
-      }`}
-    >
-      <div className="flex items-start gap-3">
+  const [isEditing, setIsEditing] = useState(false);
+  const isOptimistic = task.id.startsWith("optimistic-");
+
+  if (isEditing) {
+    return (
+      <form
+        action={(formData) => {
+          onEditTitle(task, String(formData.get("title") ?? ""));
+          setIsEditing(false);
+        }}
+        className="flex min-h-[52px] items-center gap-2 rounded-[20px] bg-[#212121] px-3 py-2.5"
+      >
+        <input
+          name="title"
+          required
+          autoFocus
+          defaultValue={task.title}
+          className="h-8 min-w-0 flex-1 rounded-[16px] border border-transparent bg-[#171717] px-3 text-sm font-medium text-[#f4f4f4] outline-none transition focus:border-[#303030]"
+        />
+        <button
+          type="submit"
+          disabled={pending}
+          title="Save task"
+          aria-label="Save task"
+          className="grid size-8 place-items-center rounded-[16px] bg-[#203d3b] text-[#a8fffb] transition hover:bg-[#284a48] disabled:opacity-50"
+        >
+          <Check className="size-3.5" aria-hidden="true" />
+        </button>
         <button
           type="button"
-          title={task.completed ? "Mark as missing" : "Mark as complete"}
-          aria-label={task.completed ? "Mark task as missing" : "Mark task complete"}
-          disabled={pending}
-          onClick={() => onToggle(task)}
-          className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-md border transition disabled:opacity-40 ${
-            task.completed
-              ? "border-[var(--azure)] bg-[var(--azure)] text-white"
-              : "border-slate-300 bg-white text-slate-400 hover:border-[var(--azure)] hover:text-[var(--azure)]"
-          }`}
+          title="Cancel edit"
+          aria-label="Cancel edit"
+          onClick={() => setIsEditing(false)}
+          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#2f2f2f] hover:text-white"
         >
-          {task.completed ? (
-            <Check className="size-4" aria-hidden="true" />
-          ) : (
-            <Circle className="size-4" aria-hidden="true" />
-          )}
+          <X className="size-3.5" aria-hidden="true" />
         </button>
+      </form>
+    );
+  }
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3
-              className={`min-w-0 text-sm font-extrabold leading-5 ${
-                task.completed ? "text-slate-500 line-through" : "text-slate-950"
-              }`}
-            >
-              {task.title}
-            </h3>
-            <span
-              className={`shrink-0 rounded-md border px-2 py-1 text-[11px] font-extrabold ${priorityStyles[task.priority]}`}
-            >
-              {task.priority.toLowerCase()}
-            </span>
-          </div>
+  return (
+    <article
+      data-task-completed={task.completed ? "true" : "false"}
+      data-task-optimistic={isOptimistic ? "true" : "false"}
+      data-main-task={locked ? "true" : "false"}
+      data-task-id={task.id}
+      data-task-title={task.title}
+      className={`group flex min-h-[52px] items-center gap-3 rounded-[20px] bg-[#212121] px-3 py-2.5 transition hover:bg-[#262626] ${
+        task.completed ? "text-[#8f8f8f]" : "text-[#f4f4f4]"
+      }`}
+    >
+      <button
+        type="button"
+        title={task.completed ? "Mark as open" : "Mark as complete"}
+        aria-label={task.completed ? "Mark task as open" : "Mark task complete"}
+        disabled={pending || isOptimistic}
+        onClick={() => onToggle(task)}
+        className={`grid size-7 shrink-0 place-items-center rounded-full border transition disabled:opacity-40 ${
+          task.completed
+            ? "border-[#f4f4f4] bg-[#f4f4f4] text-black"
+            : "border-[#555] bg-transparent text-[#8f8f8f] hover:border-[#f4f4f4] hover:text-[#f4f4f4]"
+        }`}
+      >
+        {task.completed ? (
+          <Check className="size-3.5" aria-hidden="true" />
+        ) : null}
+      </button>
 
-          {task.description ? (
-            <p className="mt-2 line-clamp-3 text-sm leading-5 text-slate-600">
-              {task.description}
-            </p>
-          ) : null}
+      <p
+        className={`min-w-0 flex-1 truncate text-sm font-medium ${
+          task.completed ? "line-through" : ""
+        }`}
+      >
+        {task.title}
+      </p>
 
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
-            {task.areaLabel ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1">
-                <Tag className="size-3.5" aria-hidden="true" />
-                {task.areaLabel}
-              </span>
-            ) : null}
-            {task.dueDate ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1">
-                <CalendarDays className="size-3.5" aria-hidden="true" />
-                {task.dueDate}
-              </span>
-            ) : null}
-            {!task.areaLabel && !task.dueDate ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1">
-                <Flag className="size-3.5" aria-hidden="true" />
-                admin
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-end gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           title="Edit task"
           aria-label="Edit task"
-          disabled={pending}
-          onClick={() => onEdit(task)}
-          className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--azure-line)] hover:bg-[var(--azure-soft)] hover:text-[var(--azure-ink)] disabled:opacity-35"
+          disabled={pending || isOptimistic}
+          onClick={() => setIsEditing(true)}
+          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#333] hover:text-white disabled:opacity-35"
         >
-          <Edit3 className="size-4" aria-hidden="true" />
+          <Pencil className="size-3.5" aria-hidden="true" />
         </button>
         <button
           type="button"
           title="Delete task"
           aria-label="Delete task"
-          disabled={pending}
+          disabled={pending || isOptimistic}
           onClick={() => onDelete(task.id)}
-          className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[var(--pink-line)] hover:bg-[var(--pink-soft)] hover:text-[var(--pink-ink)] disabled:opacity-35"
+          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#333] hover:text-white disabled:opacity-35"
         >
-          <Trash2 className="size-4" aria-hidden="true" />
+          <Trash2 className="size-3.5" aria-hidden="true" />
         </button>
       </div>
     </article>
