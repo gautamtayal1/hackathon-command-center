@@ -36,24 +36,20 @@ export default async function DisplayPage() {
     },
   });
 
-  // Flatten to one card per judge, each showing the teams assigned to that
-  // judge's group.
-  const judgeCards = groups.flatMap((group) =>
-    group.judges.map((judge) => ({
-      id: judge.id,
-      name: judge.name,
-      groupName: group.name,
-      teams: group.assignments.map((assignment) => ({
-        id: assignment.application.id,
-        teamName: assignment.application.teamName,
-      })),
+  const groupCards = groups.map((group) => ({
+    id: group.id,
+    name: group.name,
+    judges: group.judges.map((judge) => judge.name),
+    teams: group.assignments.map((assignment) => ({
+      id: assignment.application.id,
+      teamName: assignment.application.teamName,
     })),
-  );
+  }));
 
-  if (!judgeCards.length) {
+  if (!groupCards.length) {
     return (
       <DisplayMessage
-        title="No judges assigned yet"
+        title="No groups yet"
         body="Add judges and generate groups in the command center to populate this screen."
       />
     );
@@ -70,32 +66,37 @@ export default async function DisplayPage() {
             {hackathon.name}
           </h1>
           <p className="mt-2 text-lg font-medium text-[#9b9b9b]">
-            Judge assignments
+            Team allocations by group
           </p>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full border border-[#303030] px-4 py-2 text-base font-semibold text-[#b4b4b4]">
           <UsersRound className="size-5" aria-hidden="true" />
-          {judgeCards.length} judges
+          {groupCards.length} groups
         </span>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {judgeCards.map((judge) => (
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {groupCards.map((group) => (
           <article
-            key={judge.id}
+            key={group.id}
             className="flex flex-col rounded-[24px] border border-[#303030] bg-[#161616] p-6"
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#7ad17a]">
-              {judge.groupName}
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
-              {judge.name}
+            <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
+              {group.name}
             </h2>
+            {group.judges.length ? (
+              <p className="mt-2 text-base font-medium text-[#7ad17a]">
+                {group.judges.join(" · ")}
+              </p>
+            ) : null}
 
             <div className="mt-5 border-t border-[#2a2a2a] pt-4">
-              {judge.teams.length ? (
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#8f8f8f]">
+                Teams ({group.teams.length})
+              </p>
+              {group.teams.length ? (
                 <ul className="space-y-2">
-                  {judge.teams.map((team, index) => (
+                  {group.teams.map((team, index) => (
                     <li
                       key={team.id}
                       className="flex items-center gap-3 text-xl font-medium text-[#ededed]"
@@ -109,7 +110,7 @@ export default async function DisplayPage() {
                 </ul>
               ) : (
                 <p className="text-lg font-medium text-[#6f6f6f]">
-                  No teams assigned yet
+                  No teams allocated yet
                 </p>
               )}
             </div>
