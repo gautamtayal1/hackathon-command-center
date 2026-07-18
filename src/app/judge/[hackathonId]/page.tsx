@@ -27,7 +27,6 @@ const scoreSelect = {
   iterationScore: true,
   uiUxScore: true,
   executionScore: true,
-  note: true,
 } as const;
 
 export default async function JudgeHackathonPage({
