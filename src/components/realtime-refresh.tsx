@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -8,6 +8,8 @@ const REFRESH_DEBOUNCE_MS = 180;
 
 export function RealtimeRefresh() {
   const router = useRouter();
+  const [connectionStatus, setConnectionStatus] = useState("CONNECTING");
+  const [eventCount, setEventCount] = useState(0);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -39,8 +41,11 @@ export function RealtimeRefresh() {
 
     const channel = supabase
       .channel("draki:updates", { config: { private: false } })
-      .on("broadcast", { event: "invalidate" }, scheduleRefresh)
-      .subscribe();
+      .on("broadcast", { event: "invalidate" }, () => {
+        setEventCount((count) => count + 1);
+        scheduleRefresh();
+      })
+      .subscribe((status) => setConnectionStatus(status));
 
     document.addEventListener("visibilitychange", refreshVisiblePage);
 
@@ -55,5 +60,11 @@ export function RealtimeRefresh() {
     };
   }, [router]);
 
-  return null;
+  return (
+    <span
+      hidden
+      data-realtime-status={connectionStatus}
+      data-realtime-events={eventCount}
+    />
+  );
 }
