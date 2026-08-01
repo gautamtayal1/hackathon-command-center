@@ -16,7 +16,6 @@ export function RankingAutoScroll() {
       return;
     }
 
-    let direction = 1;
     let previousTime = performance.now();
     let pauseUntil = previousTime + EDGE_PAUSE_MS;
     let animationFrame = 0;
@@ -51,18 +50,12 @@ export function RankingAutoScroll() {
         if (maxScroll > 0) {
           const nextPosition =
             scrollPosition +
-            direction * SCROLL_SPEED_PX_PER_SECOND * elapsedSeconds;
+            SCROLL_SPEED_PX_PER_SECOND * elapsedSeconds;
 
           if (nextPosition >= maxScroll) {
             scrollPosition = maxScroll;
             window.scrollTo({ top: scrollPosition, behavior: "auto" });
-            direction = -1;
-            pauseUntil = time + EDGE_PAUSE_MS;
-          } else if (nextPosition <= 0) {
-            scrollPosition = 0;
-            window.scrollTo({ top: scrollPosition, behavior: "auto" });
-            direction = 1;
-            pauseUntil = time + EDGE_PAUSE_MS;
+            return;
           } else {
             scrollPosition = nextPosition;
             window.scrollTo({ top: scrollPosition, behavior: "auto" });
