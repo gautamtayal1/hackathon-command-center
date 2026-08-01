@@ -707,6 +707,7 @@ export function Board({
               judges={optimisticJudges}
               groups={hydratedJudgeGroups}
               judgingApplications={judgingApplications}
+              rankingUrl={`/ranking/${activeHackathon.id}`}
               pending={false}
               onCreate={createJudge}
               onUpdate={updateJudge}
@@ -1661,6 +1662,7 @@ function JudgesWorkspace({
   judges,
   groups,
   judgingApplications,
+  rankingUrl,
   pending,
   onCreate,
   onUpdate,
@@ -1671,6 +1673,7 @@ function JudgesWorkspace({
   judges: Judge[];
   groups: JudgeGroup[];
   judgingApplications: JudgingApplication[];
+  rankingUrl: string;
   pending: boolean;
   onCreate: (formData: FormData) => void;
   onUpdate: (id: string, formData: FormData) => void;
@@ -2072,14 +2075,25 @@ function JudgesWorkspace({
         </div>
 
         <div className="rounded-[20px] bg-[#2f2f2f] p-3">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
               Ranking
             </h3>
-            <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
-              <Trophy className="size-3.5" aria-hidden="true" />
-              {judgingApplications.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <a
+                href={rankingUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-[20px] bg-[#212121] px-3 py-1 text-xs font-semibold text-[#d6d6d6] transition hover:bg-[#383838] hover:text-white"
+              >
+                Open ranking
+                <ExternalLink className="size-3.5" aria-hidden="true" />
+              </a>
+              <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+                <Trophy className="size-3.5" aria-hidden="true" />
+                {judgingApplications.length}
+              </span>
+            </div>
           </div>
           {judgingApplications.length ? (
             <div className="overflow-x-auto">

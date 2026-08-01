@@ -470,9 +470,15 @@ export async function getJudgingApplications(
   workspaceId?: string,
 ): Promise<JudgingApplication[]> {
   const hackathon = await getActiveHackathon(workspaceId);
-  await ensureApplicationAssignments(hackathon.id);
+  return getJudgingApplicationsForHackathon(hackathon.id);
+}
+
+export async function getJudgingApplicationsForHackathon(
+  hackathonId: string,
+): Promise<JudgingApplication[]> {
+  await ensureApplicationAssignments(hackathonId);
   const applications = await prisma.application.findMany({
-    where: { hackathonId: hackathon.id },
+    where: { hackathonId },
     include: {
       assignment: {
         include: {
