@@ -20,9 +20,11 @@ type JudgeApplication = {
 export function JudgeWorkspace({
   applications,
   scoreAction,
+  roundLabel,
 }: {
   applications: JudgeApplication[];
   scoreAction: (applicationId: string, formData: FormData) => Promise<void>;
+  roundLabel: string;
 }) {
   if (!applications.length) {
     return (
@@ -48,7 +50,7 @@ export function JudgeWorkspace({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-[#8f8f8f]">
-                Team {index + 1}
+                {roundLabel} · Team {index + 1}
                 {application.groupName ? ` / ${application.groupName}` : ""}
               </p>
               <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">

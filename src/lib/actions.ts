@@ -26,6 +26,10 @@ import {
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
+import {
+  ensureGroupJudgingRound,
+  startFinalRoundForHackathon,
+} from "@/lib/judging";
 
 function cleanInput(input: TaskInput) {
   const title = input.title.trim();
@@ -115,6 +119,16 @@ function cleanScoreValue(value: FormDataEntryValue | null, label: string) {
   }
 
   return score;
+}
+
+async function requireOpenGroupRound(hackathonId: string) {
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
+
+  if (groupRound.status !== "OPEN") {
+    throw new Error("Group judging is closed because the final round has started.");
+  }
+
+  return groupRound;
 }
 
 function cleanRequiredText(value: string, label: string) {
@@ -439,6 +453,7 @@ export async function deleteBudgetEntry(id: string) {
 export async function createJudge(input: JudgeInput) {
   const { workspace } = await getAdminContext();
   const hackathon = await getActiveHackathon(workspace.id);
+  await requireOpenGroupRound(hackathon.id);
   const data = cleanJudgeInput(input);
   const invite = await provisionJudgeAccount(data.email);
   const groupId = await resolveJudgeGroupForHackathon(hackathon.id, data);
@@ -467,6 +482,7 @@ export async function updateJudge(id: string, input: JudgeInput) {
     where: { id },
     select: { email: true, groupId: true, hackathonId: true, sortOrder: true },
   });
+  await requireOpenGroupRound(current.hackathonId);
   const groupId = await resolveJudgeGroupForHackathon(
     current.hackathonId,
     data,
@@ -607,6 +623,7 @@ async function cleanJudgeGroupForHackathon(
 export async function autoGenerateJudgeGroups() {
   const { workspace } = await getAdminContext();
   const hackathon = await getActiveHackathon(workspace.id);
+  await requireOpenGroupRound(hackathon.id);
   const judges = await prisma.judge.findMany({
     where: { hackathonId: hackathon.id },
     orderBy: [{ createdAt: "asc" }],
@@ -666,6 +683,7 @@ export async function moveJudgeToGroup(
     where: { id },
     select: { groupId: true, hackathonId: true },
   });
+  await requireOpenGroupRound(judge.hackathonId);
   const cleanedGroupId = await cleanJudgeGroupForHackathon(
     judge.hackathonId,
     groupId,
@@ -715,6 +733,11 @@ export async function moveJudgeToGroup(
 
 export async function deleteJudge(id: string) {
   await requireAdminForJudge(id);
+  const judge = await prisma.judge.findUniqueOrThrow({
+    where: { id },
+    select: { hackathonId: true },
+  });
+  await requireOpenGroupRound(judge.hackathonId);
 
   await prisma.judge.delete({
     where: { id },
@@ -747,6 +770,8 @@ export async function submitApplication(
       };
     }
 
+    await requireOpenGroupRound(hackathon.id);
+
     const data = await cleanApplicationInput({
       teamName: String(formData.get("teamName") ?? ""),
       participantsFullName: String(formData.get("participantsFullName") ?? ""),
@@ -776,6 +801,11 @@ export async function submitApplication(
 
 export async function deleteApplication(id: string) {
   await requireAdminForApplication(id);
+  const application = await prisma.application.findUniqueOrThrow({
+    where: { id },
+    select: { hackathonId: true },
+  });
+  await requireOpenGroupRound(application.hackathonId);
 
   await prisma.application.delete({
     where: { id },
@@ -791,9 +821,14 @@ export async function upsertJudgeScore(
   formData: FormData,
 ) {
   const { judge } = await requireJudgeForHackathon(hackathonId);
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
+  const finalRound = await prisma.judgingRound.findFirst({
+    where: { hackathonId, type: "FINAL", status: "OPEN" },
+  });
+  const activeRound = finalRound ?? groupRound;
 
-  if (!judge.groupId) {
-    throw new Error("You are not assigned to a judging group yet.");
+  if (activeRound.status !== "OPEN") {
+    throw new Error("Judging is closed for this round.");
   }
 
   const application = await prisma.application.findFirst({
@@ -805,17 +840,36 @@ export async function upsertJudgeScore(
     throw new Error("Application not found.");
   }
 
-  const assignment = await prisma.applicationAssignment.findFirst({
-    where: {
-      hackathonId,
-      applicationId: application.id,
-      groupId: judge.groupId,
-    },
-    select: { id: true },
-  });
+  if (activeRound.type === "FINAL") {
+    const finalist = await prisma.finalistSelection.findFirst({
+      where: {
+        hackathonId,
+        finalRoundId: activeRound.id,
+        applicationId: application.id,
+      },
+      select: { id: true },
+    });
 
-  if (!assignment) {
-    throw new Error("This application is assigned to another judging group.");
+    if (!finalist) {
+      throw new Error("This application is not a finalist.");
+    }
+  } else {
+    if (!judge.groupId) {
+      throw new Error("You are not assigned to a judging group yet.");
+    }
+
+    const assignment = await prisma.applicationAssignment.findFirst({
+      where: {
+        hackathonId,
+        applicationId: application.id,
+        groupId: judge.groupId,
+      },
+      select: { id: true },
+    });
+
+    if (!assignment) {
+      throw new Error("This application is assigned to another judging group.");
+    }
   }
 
   const pitchScore = cleanScoreValue(formData.get("pitchScore"), "Pitch");
@@ -835,7 +889,8 @@ export async function upsertJudgeScore(
 
   await prisma.score.upsert({
     where: {
-      applicationId_judgeId: {
+      roundId_applicationId_judgeId: {
+        roundId: activeRound.id,
         applicationId: application.id,
         judgeId: judge.id,
       },
@@ -850,6 +905,7 @@ export async function upsertJudgeScore(
     },
     create: {
       hackathonId,
+      roundId: activeRound.id,
       applicationId: application.id,
       judgeId: judge.id,
       score,
@@ -863,6 +919,17 @@ export async function upsertJudgeScore(
 
   revalidatePath(`/judge/${hackathonId}`);
   revalidatePath("/");
+  revalidatePath(`/ranking/${hackathonId}`);
+}
+
+export async function startFinalRound(hackathonId: string) {
+  await requireAdminForHackathon(hackathonId);
+  await startFinalRoundForHackathon(hackathonId);
+
+  revalidatePath("/");
+  revalidatePath("/preview");
+  revalidatePath(`/judge/${hackathonId}`);
+  revalidatePath(`/ranking/${hackathonId}`);
 }
 
 export async function createHackathonFromLuma(input: HackathonInput) {

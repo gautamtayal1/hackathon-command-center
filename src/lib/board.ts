@@ -155,6 +155,16 @@ export type JudgingApplication = HackathonApplication & {
   potentialAverage: number | null;
   uiUxAverage: number | null;
   executionAverage: number | null;
+  isGroupLeader: boolean;
+  isGroupWinner: boolean;
+  isTiedForLead: boolean;
+};
+
+export type JudgingRoundState = {
+  groupRoundId: string;
+  groupRoundStatus: "DRAFT" | "OPEN" | "CLOSED";
+  finalRoundId: string | null;
+  finalRoundStatus: "DRAFT" | "OPEN" | "CLOSED" | null;
 };
 
 export type ApplicationInput = {

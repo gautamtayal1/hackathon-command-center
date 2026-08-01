@@ -4,6 +4,7 @@ import { requireJudgeForHackathon } from "@/lib/auth";
 import { upsertJudgeScore } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { JudgeWorkspace } from "@/app/judge/[hackathonId]/judge-workspace";
+import { ensureGroupJudgingRound } from "@/lib/judging";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,36 @@ export default async function JudgeHackathonPage({
 }: JudgeHackathonPageProps) {
   const { hackathonId } = await params;
   const { judge } = await requireJudgeForHackathon(hackathonId);
-  const applications = judge.groupId
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
+  const finalRound = await prisma.judgingRound.findFirst({
+    where: { hackathonId, type: "FINAL", status: "OPEN" },
+  });
+  const activeRound = finalRound ?? groupRound;
+  const applications = activeRound.type === "FINAL"
+    ? await prisma.application.findMany({
+        where: {
+          hackathonId,
+          finalistSelection: { is: { finalRoundId: activeRound.id } },
+        },
+        include: {
+          scores: {
+            where: { judgeId: judge.id, roundId: activeRound.id },
+            select: {
+              score: true,
+              pitchScore: true,
+              potentialScore: true,
+              uiUxScore: true,
+              executionScore: true,
+              note: true,
+            },
+          },
+          assignment: {
+            include: { group: { select: { name: true } } },
+          },
+        },
+        orderBy: [{ createdAt: "asc" }],
+      })
+    : judge.groupId
     ? await prisma.application.findMany({
         where: {
           hackathonId,
@@ -30,7 +60,7 @@ export default async function JudgeHackathonPage({
         },
         include: {
           scores: {
-            where: { judgeId: judge.id },
+            where: { judgeId: judge.id, roundId: activeRound.id },
             select: {
               score: true,
               pitchScore: true,
@@ -74,6 +104,7 @@ export default async function JudgeHackathonPage({
             </h1>
           </div>
           <p className="rounded-[20px] border border-[#303030] px-4 py-2 text-sm font-semibold text-[#b4b4b4]">
+            {activeRound.type === "FINAL" ? "Final round" : "Group round"} ·{" "}
             {applications.length} applications
           </p>
         </div>
@@ -89,6 +120,7 @@ export default async function JudgeHackathonPage({
             score: application.scores[0] ?? null,
           }))}
           scoreAction={scoreAction}
+          roundLabel={activeRound.type === "FINAL" ? "Final" : "Group round"}
         />
       </section>
     </main>

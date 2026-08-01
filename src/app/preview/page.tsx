@@ -8,6 +8,7 @@ import {
   deleteBudgetEntry,
   deleteJudge,
   moveJudgeToGroup,
+  startFinalRound,
   updateBudgetEntry,
   updateJudge,
 } from "@/lib/actions";
@@ -41,6 +42,8 @@ export default async function PreviewDashboard() {
     applications,
     judgeGroups,
     judgingApplications,
+    finalJudgingApplications,
+    judgingRoundState,
   } = await getDashboardData();
 
   return (
@@ -55,9 +58,12 @@ export default async function PreviewDashboard() {
         applications={applications}
         judgeGroups={judgeGroups}
         judgingApplications={judgingApplications}
+        finalJudgingApplications={finalJudgingApplications}
+        judgingRoundState={judgingRoundState}
         actions={{
           autoGenerateJudgeGroups,
           moveJudgeToGroup,
+          startFinalRound,
           createHackathonFromLuma: createPreviewHackathonFromLuma,
           selectHackathon: selectPreviewHackathon,
           createTask: createPreviewTask,

@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getJudgingApplicationsForHackathon } from "@/lib/tasks";
+import {
+  getFinalJudgingApplicationsForHackathon,
+  getJudgingApplicationsForHackathon,
+} from "@/lib/tasks";
 import { RankingAutoScroll } from "./ranking-auto-scroll";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +30,23 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
     notFound();
   }
 
-  const applications = await getJudgingApplicationsForHackathon(hackathon.id);
-  const groups = groupApplications(applications);
+  const [applications, finalApplications] = await Promise.all([
+    getJudgingApplicationsForHackathon(hackathon.id),
+    getFinalJudgingApplicationsForHackathon(hackathon.id),
+  ]);
+  const groups = [
+    ...(finalApplications.length
+      ? [
+          {
+            id: "final",
+            name: "Final round",
+            applications: finalApplications,
+            isFinal: true,
+          },
+        ]
+      : []),
+    ...groupApplications(applications),
+  ];
 
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-[#f4f4f4] sm:px-8 sm:py-12">
@@ -60,7 +78,7 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
                 <div className="flex items-center justify-between px-4 py-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8f8f8f]">
-                      Judging group
+                      {group.isFinal ? "All judges" : "Judging group"}
                     </p>
                     <h2 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-white">
                       {group.name}
@@ -96,8 +114,21 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
                             {formatPlace(index + 1)}
                           </td>
                           <td className="max-w-[260px] bg-[#212121] px-4 py-4">
-                            <span className="block truncate text-base font-semibold text-white">
-                              {application.teamName}
+                            <span className="flex items-center gap-2">
+                              <span className="block min-w-0 truncate text-base font-semibold text-white">
+                                {application.teamName}
+                              </span>
+                              {!group.isFinal &&
+                              (application.isGroupWinner ||
+                                application.isGroupLeader) ? (
+                                <span className="shrink-0 rounded-full bg-[#15b5b0]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#5ee1dc]">
+                                  {application.isGroupWinner
+                                    ? "Group winner"
+                                    : application.isTiedForLead
+                                      ? "Joint leader"
+                                      : "Current leader"}
+                                </span>
+                              ) : null}
                             </span>
                           </td>
                           <td className="bg-[#212121] px-4 py-4 text-[#b4b4b4]">
@@ -150,6 +181,7 @@ function groupApplications(
       id: string;
       name: string;
       applications: typeof applications;
+      isFinal: boolean;
     }
   >();
 
@@ -159,6 +191,7 @@ function groupApplications(
       id,
       name: application.groupName ?? "Unassigned",
       applications: [],
+      isFinal: false,
     };
 
     group.applications.push(application);
