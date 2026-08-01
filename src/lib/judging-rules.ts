@@ -2,7 +2,25 @@ export type RankedFinalistCandidate = {
   applicationId: string;
   teamName: string;
   total: number;
+  scoreCount?: number;
 };
+
+export function selectProvisionalGroupWinner(
+  groupName: string,
+  candidates: RankedFinalistCandidate[],
+) {
+  if (!candidates.length) {
+    throw new Error(`${groupName} has no applications.`);
+  }
+
+  return candidates.toSorted((a, b) => {
+    if (b.total !== a.total) {
+      return b.total - a.total;
+    }
+
+    return (b.scoreCount ?? 0) - (a.scoreCount ?? 0);
+  })[0];
+}
 
 export function selectSingleGroupWinner(
   groupName: string,

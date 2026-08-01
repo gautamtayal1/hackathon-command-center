@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { selectSingleGroupWinner } from "@/lib/judging-rules";
+import { selectProvisionalGroupWinner } from "@/lib/judging-rules";
 
 export async function ensureGroupJudgingRound(hackathonId: string) {
   const round = await prisma.judgingRound.upsert({
@@ -50,19 +50,10 @@ function scoreTotal(score: {
   return criteriaTotal > 0 ? criteriaTotal : score.score * 4;
 }
 
-export async function startFinalRoundForHackathon(hackathonId: string) {
-  const groupRound = await ensureGroupJudgingRound(hackathonId);
-
-  if (groupRound.status === "CLOSED") {
-    const existingFinal = await prisma.judgingRound.findUnique({
-      where: { hackathonId_type: { hackathonId, type: "FINAL" } },
-    });
-
-    if (existingFinal) {
-      return existingFinal;
-    }
-  }
-
+async function getProvisionalGroupWinners(
+  hackathonId: string,
+  groupRoundId: string,
+) {
   const groups = await prisma.judgeGroup.findMany({
     where: { hackathonId },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
@@ -76,7 +67,7 @@ export async function startFinalRoundForHackathon(hackathonId: string) {
               id: true,
               teamName: true,
               scores: {
-                where: { roundId: groupRound.id },
+                where: { roundId: groupRoundId },
                 select: {
                   judgeId: true,
                   score: true,
@@ -104,39 +95,82 @@ export async function startFinalRoundForHackathon(hackathonId: string) {
   const winners: Array<{ applicationId: string; sourceGroupId: string }> = [];
 
   for (const group of groupsWithApplications) {
-    if (!group.judges.length) {
-      throw new Error(`${group.name} has no judges.`);
-    }
-
     const judgeIds = new Set(group.judges.map((judge) => judge.id));
     const ranked = group.assignments.map(({ application }) => {
       const completedScores = application.scores.filter(
         (score) => judgeIds.has(score.judgeId) && scoreTotal(score) > 0,
       );
-
-      if (completedScores.length !== judgeIds.size) {
-        throw new Error(
-          `${application.teamName} is missing ${judgeIds.size - completedScores.length} vote(s) in ${group.name}.`,
-        );
-      }
+      const total = completedScores.reduce(
+        (sum, score) => sum + scoreTotal(score),
+        0,
+      );
 
       return {
         applicationId: application.id,
         teamName: application.teamName,
-        total: completedScores.reduce(
-          (sum, score) => sum + scoreTotal(score),
-          0,
-        ),
+        total: completedScores.length ? total / completedScores.length : 0,
+        scoreCount: completedScores.length,
       };
     });
 
-    const winner = selectSingleGroupWinner(group.name, ranked);
+    const winner = selectProvisionalGroupWinner(group.name, ranked);
 
     winners.push({
       applicationId: winner.applicationId,
       sourceGroupId: group.id,
     });
   }
+
+  return winners;
+}
+
+export async function syncProvisionalFinalists(hackathonId: string) {
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
+  const finalRound = await prisma.judgingRound.findUnique({
+    where: { hackathonId_type: { hackathonId, type: "FINAL" } },
+  });
+
+  if (!finalRound || finalRound.status !== "OPEN") {
+    return finalRound;
+  }
+
+  const winners = await getProvisionalGroupWinners(hackathonId, groupRound.id);
+
+  await prisma.$transaction(async (tx) => {
+    await Promise.all(winners.map((winner) =>
+      tx.finalistSelection.upsert({
+        where: {
+          finalRoundId_sourceGroupId: {
+            finalRoundId: finalRound.id,
+            sourceGroupId: winner.sourceGroupId,
+          },
+        },
+        update: {
+          applicationId: winner.applicationId,
+          selectedAt: new Date(),
+        },
+        create: {
+          hackathonId,
+          finalRoundId: finalRound.id,
+          applicationId: winner.applicationId,
+          sourceGroupId: winner.sourceGroupId,
+        },
+      }),
+    ));
+    await tx.finalistSelection.deleteMany({
+      where: {
+        finalRoundId: finalRound.id,
+        sourceGroupId: { notIn: winners.map((winner) => winner.sourceGroupId) },
+      },
+    });
+  });
+
+  return finalRound;
+}
+
+export async function startFinalRoundForHackathon(hackathonId: string) {
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
+  const winners = await getProvisionalGroupWinners(hackathonId, groupRound.id);
 
   return prisma.$transaction(async (tx) => {
     const finalRound = await tx.judgingRound.upsert({
@@ -165,11 +199,6 @@ export async function startFinalRoundForHackathon(hackathonId: string) {
         sourceGroupId: winner.sourceGroupId,
       })),
     });
-    await tx.judgingRound.update({
-      where: { id: groupRound.id },
-      data: { status: "CLOSED", closedAt: new Date() },
-    });
-
     return finalRound;
   });
 }

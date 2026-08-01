@@ -12,18 +12,23 @@ type JudgeHackathonPageProps = {
   params: Promise<{
     hackathonId: string;
   }>;
+  searchParams: Promise<{
+    round?: string;
+  }>;
 };
 
 export default async function JudgeHackathonPage({
   params,
+  searchParams,
 }: JudgeHackathonPageProps) {
   const { hackathonId } = await params;
+  const { round } = await searchParams;
   const { judge } = await requireJudgeForHackathon(hackathonId);
   const groupRound = await ensureGroupJudgingRound(hackathonId);
   const finalRound = await prisma.judgingRound.findFirst({
     where: { hackathonId, type: "FINAL", status: "OPEN" },
   });
-  const activeRound = finalRound ?? groupRound;
+  const activeRound = finalRound && round !== "group" ? finalRound : groupRound;
   const applications = activeRound.type === "FINAL"
     ? await prisma.application.findMany({
         where: {
@@ -109,6 +114,31 @@ export default async function JudgeHackathonPage({
           </p>
         </div>
 
+        {finalRound ? (
+          <nav className="mb-5 flex gap-2" aria-label="Judging round">
+            <Link
+              href={`/judge/${hackathonId}?round=group`}
+              className={`rounded-[20px] px-4 py-2 text-sm font-semibold transition ${
+                activeRound.type === "GROUP"
+                  ? "bg-[#f4f4f4] text-black"
+                  : "bg-[#212121] text-[#b4b4b4] hover:text-white"
+              }`}
+            >
+              Group round
+            </Link>
+            <Link
+              href={`/judge/${hackathonId}?round=final`}
+              className={`rounded-[20px] px-4 py-2 text-sm font-semibold transition ${
+                activeRound.type === "FINAL"
+                  ? "bg-[#15b5b0] text-black"
+                  : "bg-[#212121] text-[#b4b4b4] hover:text-white"
+              }`}
+            >
+              Final round · all finalists
+            </Link>
+          </nav>
+        ) : null}
+
         <JudgeWorkspace
           applications={applications.map((application) => ({
             id: application.id,
@@ -121,6 +151,7 @@ export default async function JudgeHackathonPage({
           }))}
           scoreAction={scoreAction}
           roundLabel={activeRound.type === "FINAL" ? "Final" : "Group round"}
+          roundType={activeRound.type}
         />
       </section>
     </main>

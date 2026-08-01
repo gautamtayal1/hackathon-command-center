@@ -29,6 +29,7 @@ import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
 import {
   ensureGroupJudgingRound,
   startFinalRoundForHackathon,
+  syncProvisionalFinalists,
 } from "@/lib/judging";
 
 function cleanInput(input: TaskInput) {
@@ -825,7 +826,12 @@ export async function upsertJudgeScore(
   const finalRound = await prisma.judgingRound.findFirst({
     where: { hackathonId, type: "FINAL", status: "OPEN" },
   });
-  const activeRound = finalRound ?? groupRound;
+  const requestedRound = String(formData.get("roundType") ?? "");
+  const activeRound = requestedRound === "GROUP" ? groupRound : finalRound;
+
+  if (!activeRound) {
+    throw new Error("The final round has not started yet.");
+  }
 
   if (activeRound.status !== "OPEN") {
     throw new Error("Judging is closed for this round.");
@@ -916,6 +922,10 @@ export async function upsertJudgeScore(
       note,
     },
   });
+
+  if (activeRound.type === "GROUP" && finalRound) {
+    await syncProvisionalFinalists(hackathonId);
+  }
 
   revalidatePath(`/judge/${hackathonId}`);
   revalidatePath("/");
