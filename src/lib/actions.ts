@@ -296,6 +296,14 @@ async function inviteJudgeByEmail(email: string) {
       const message = error.message.toLowerCase();
 
       if (
+        message.includes("rate limit") ||
+        message.includes("rate_limit") ||
+        message.includes("too many")
+      ) {
+        return { inviteStatus: "CONTACT" as const, invitedAt: null };
+      }
+
+      if (
         !message.includes("already") &&
         !message.includes("registered") &&
         !message.includes("exists")
