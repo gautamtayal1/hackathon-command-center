@@ -651,8 +651,14 @@ export async function getFinalJudgingApplicationsForHackathon(
       };
     })
     .toSorted((a, b) => {
-      if (b.totalScore !== a.totalScore) {
-        return b.totalScore - a.totalScore;
+      const groupOrder = (a.groupName ?? "").localeCompare(
+        b.groupName ?? "",
+        undefined,
+        { numeric: true },
+      );
+
+      if (groupOrder !== 0) {
+        return groupOrder;
       }
 
       return a.createdAt.localeCompare(b.createdAt);

@@ -121,6 +121,9 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
                       <tr className="text-xs font-medium uppercase tracking-[0.08em] text-[#8f8f8f]">
                         <th className="w-16 px-4 py-2">Place</th>
                         <th className="px-4 py-2">Startup</th>
+                        {group.isFinal ? (
+                          <th className="px-4 py-2">Group</th>
+                        ) : null}
                         <th className="px-4 py-2">Votes</th>
                         <th className="px-4 py-2">Score</th>
                         <th className="px-4 py-2">Pitch</th>
@@ -158,6 +161,11 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
                               ) : null}
                             </span>
                           </td>
+                          {group.isFinal ? (
+                            <td className="bg-[#212121] px-4 py-4 text-[#b4b4b4]">
+                              {application.groupName ?? "–"}
+                            </td>
+                          ) : null}
                           <td className="bg-[#212121] px-4 py-4 text-[#b4b4b4]">
                             {application.scoreCount}
                           </td>

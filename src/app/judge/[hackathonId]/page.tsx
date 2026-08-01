@@ -51,7 +51,10 @@ export default async function JudgeHackathonPage({
             include: { group: { select: { name: true } } },
           },
         },
-        orderBy: [{ createdAt: "asc" }],
+        orderBy: [
+          { assignment: { group: { sortOrder: "asc" } } },
+          { createdAt: "asc" },
+        ],
       })
     : judge.groupId
     ? await prisma.application.findMany({
