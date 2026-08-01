@@ -2,7 +2,6 @@
 
 import {
   type FormEvent,
-  useEffect,
   useMemo,
   useOptimistic,
   useState,
@@ -390,20 +389,6 @@ export function Board({
       netCents: incomeCents - expenseCents,
     };
   }, [budgetEntries]);
-
-  useEffect(() => {
-    if (activeView !== "applications") {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        router.refresh();
-      }
-    }, 4000);
-
-    return () => window.clearInterval(intervalId);
-  }, [activeView, activeHackathon.id, router]);
 
   function refreshAfterMutation() {
     router.refresh();

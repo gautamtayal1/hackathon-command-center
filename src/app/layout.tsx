@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Outfit } from "next/font/google";
+import { RealtimeRefresh } from "@/components/realtime-refresh";
 import "./globals.css";
 
 const bodyFont = Manrope({
@@ -35,7 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${bodyFont.variable} ${displayFont.variable}`}>
-      <body>{children}</body>
+      <body>
+        <RealtimeRefresh />
+        {children}
+      </body>
     </html>
   );
 }
