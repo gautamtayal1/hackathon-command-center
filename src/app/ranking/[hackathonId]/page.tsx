@@ -30,10 +30,30 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
     notFound();
   }
 
-  const [applications, finalApplications] = await Promise.all([
+  const [applications, finalApplications, judgeGroups] = await Promise.all([
     getJudgingApplicationsForHackathon(hackathon.id),
     getFinalJudgingApplicationsForHackathon(hackathon.id),
+    prisma.judgeGroup.findMany({
+      where: { hackathonId: hackathon.id },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      select: {
+        id: true,
+        judges: {
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          select: { name: true },
+        },
+      },
+    }),
   ]);
+  const judgeNamesByGroup = new Map(
+    judgeGroups.map((group) => [
+      group.id,
+      group.judges.map((judge) => judge.name),
+    ]),
+  );
+  const allJudgeNames = [
+    ...new Set(judgeGroups.flatMap((group) => group.judges.map((judge) => judge.name))),
+  ];
   const groups = [
     ...(finalApplications.length
       ? [
@@ -42,10 +62,11 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
             name: "Final round",
             applications: finalApplications,
             isFinal: true,
+            judgeNames: allJudgeNames,
           },
         ]
       : []),
-    ...groupApplications(applications),
+    ...groupApplications(applications, judgeNamesByGroup),
   ];
 
   return (
@@ -83,6 +104,12 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
                     <h2 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-white">
                       {group.name}
                     </h2>
+                    <p className="mt-1 text-sm font-medium text-[#b4b4b4]">
+                      {group.isFinal ? "Judges" : "Judge"}: {" "}
+                      {group.judgeNames.length
+                        ? group.judgeNames.join(", ")
+                        : "Not assigned"}
+                    </p>
                   </div>
                   <span className="rounded-full bg-[#212121] px-3 py-1.5 text-xs font-semibold text-[#b4b4b4]">
                     {group.applications.length} teams
@@ -174,6 +201,7 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
 
 function groupApplications(
   applications: Awaited<ReturnType<typeof getJudgingApplicationsForHackathon>>,
+  judgeNamesByGroup: Map<string, string[]>,
 ) {
   const groups = new Map<
     string,
@@ -182,6 +210,7 @@ function groupApplications(
       name: string;
       applications: typeof applications;
       isFinal: boolean;
+      judgeNames: string[];
     }
   >();
 
@@ -192,6 +221,9 @@ function groupApplications(
       name: application.groupName ?? "Unassigned",
       applications: [],
       isFinal: false,
+      judgeNames: application.groupId
+        ? (judgeNamesByGroup.get(application.groupId) ?? [])
+        : [],
     };
 
     group.applications.push(application);
