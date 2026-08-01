@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Gavel, Shield } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { HashSessionHandler } from "@/app/login/hash-session-handler";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -21,6 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className="grid min-h-screen place-items-center bg-black px-4 text-[#f4f4f4]">
+      <HashSessionHandler nextPath={nextPath} />
       <section className="w-full max-w-[760px]">
         <div className="mb-8">
           <p className="text-sm font-semibold text-[#9b9b9b]">Draki</p>
