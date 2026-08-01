@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getJudgingApplicationsForHackathon } from "@/lib/tasks";
+import { RankingAutoScroll } from "./ranking-auto-scroll";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
 
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-[#f4f4f4] sm:px-8 sm:py-12">
+      <RankingAutoScroll />
       <section className="mx-auto w-full max-w-[1180px]">
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
