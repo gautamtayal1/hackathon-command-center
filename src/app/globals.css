@@ -1,21 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #f4f4f4;
-  --muted: #b4b4b4;
-  --panel: #2f2f2f;
-  --panel-strong: #212121;
-  --line: #303030;
-  --accent: #f4f4f4;
-  --accent-ink: #000000;
-  --ink: #f4f4f4;
-
-  /* 8x brand (8x.social) */
+  /* ── 8x brand core (8x.social) ───────────────────────────── */
   --brand: #1d4dff;
+  --brand-lit: #4f76ff;
   --brand-strong: #0021cc;
   --brand-deep: #00115f;
   --brand-ink: #ffffff;
+
+  /* ── 8x extended spectrum ────────────────────────────────── */
+  --violet: #a855f7;
+  --indigo: #6366f1;
+  --cyan: #22d3ee;
+  --mint: #2ee6c5;
+  --pink: #ff2d87;
+  --amber: #ffb020;
+  --lime: #a3e635;
+
+  /* ── Surfaces (midnight blue, not flat black) ────────────── */
+  --background: #05060f;
+  --surface-0: #070919;
+  --surface-1: #0e1128;
+  --surface-2: #141833;
+  --surface-3: #1b2044;
+  --line: #262c5c;
+  --line-soft: #1c2148;
+
+  /* ── Ink ─────────────────────────────────────────────────── */
+  --foreground: #eef1ff;
+  --ink: #eef1ff;
+  --ink-2: #cdd4f7;
+  --muted: #a6afdd;
+  --muted-2: #8b93c6;
+  --muted-3: #737cb0;
+
+  --panel: #141833;
+  --panel-strong: #0e1128;
+  --accent: var(--brand);
+  --accent-ink: #ffffff;
+
+  /* ── Signature gradients ─────────────────────────────────── */
+  --grad-brand: linear-gradient(112deg, #1d4dff 0%, #7c3aed 46%, #ff2d87 100%);
+  --grad-brand-soft: linear-gradient(112deg, #4f76ff 0%, #a855f7 48%, #ff5fa2 100%);
+  --grad-cool: linear-gradient(120deg, #22d3ee 0%, #4f76ff 55%, #a855f7 100%);
+  --grad-warm: linear-gradient(120deg, #ffb020 0%, #ff2d87 60%, #a855f7 100%);
 }
 
 * {
@@ -25,9 +53,11 @@
 html {
   min-width: 320px;
   background: var(--background);
+  scrollbar-color: #2c3468 transparent;
 }
 
 body {
+  position: relative;
   min-height: 100vh;
   margin: 0;
   background: var(--background);
@@ -39,6 +69,25 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+/* Ambient 8x colour mesh behind everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58rem 34rem at 8% -8%, rgba(29, 77, 255, 0.3), transparent 62%),
+    radial-gradient(46rem 30rem at 96% 4%, rgba(168, 85, 247, 0.22), transparent 60%),
+    radial-gradient(52rem 32rem at 82% 94%, rgba(255, 45, 135, 0.16), transparent 62%),
+    radial-gradient(40rem 28rem at 12% 88%, rgba(34, 211, 238, 0.14), transparent 60%);
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 button,
@@ -61,7 +110,7 @@ button:disabled {
 }
 
 :where(button, a, input, select):focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--brand-lit);
   outline-offset: 2px;
 }
 
@@ -77,23 +126,154 @@ button:disabled {
 }
 
 ::selection {
-  background: #4d4d4d;
+  background: rgba(29, 77, 255, 0.55);
   color: #fff;
   text-shadow: none;
 }
 
 ::-moz-selection {
-  background: #4d4d4d;
+  background: rgba(29, 77, 255, 0.55);
   color: #fff;
   text-shadow: none;
 }
 
 input::selection,
 textarea::selection {
-  background: #4d4d4d;
+  background: rgba(29, 77, 255, 0.55);
   color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c3468;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f4a92;
+  background-clip: content-box;
 }
 
 .font-display {
   font-family: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── 8x component primitives ───────────────────────────────── */
+
+/* Primary action: the 8x gradient pill. */
+.brand-btn {
+  position: relative;
+  color: #fff !important;
+  background-image: var(--grad-brand);
+  background-size: 180% 180%;
+  background-position: 0% 50%;
+  box-shadow:
+    0 10px 30px -12px rgba(29, 77, 255, 0.85),
+    0 2px 0 0 rgba(255, 255, 255, 0.14) inset;
+  transition:
+    background-position 0.45s ease,
+    box-shadow 0.25s ease,
+    transform 0.15s ease;
+}
+
+.brand-btn:hover:not(:disabled) {
+  background-position: 100% 50%;
+  box-shadow:
+    0 14px 38px -12px rgba(168, 85, 247, 0.85),
+    0 2px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.brand-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.brand-btn:disabled {
+  background-image: none;
+  background-color: var(--surface-3);
+  color: var(--muted-3) !important;
+  box-shadow: none;
+}
+
+/* Gradient wordmark / headline text. */
+.brand-text {
+  background-image: var(--grad-brand-soft);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-text-cool {
+  background-image: var(--grad-cool);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glassy panel with a faint brand sheen. */
+.brand-panel {
+  background-image: linear-gradient(
+    160deg,
+    rgba(79, 118, 255, 0.09),
+    rgba(168, 85, 247, 0.04) 45%,
+    transparent 78%
+  );
+}
+
+/* Hairline gradient rule. */
+.brand-rule {
+  height: 1px;
+  border: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(79, 118, 255, 0.7) 18%,
+    rgba(168, 85, 247, 0.7) 52%,
+    rgba(255, 45, 135, 0.6) 78%,
+    transparent
+  );
+}
+
+/* Top accent bar for cards/headers. */
+.brand-topline::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background-image: var(--grad-brand);
+  opacity: 0.9;
+}
+
+.brand-glow {
+  box-shadow: 0 0 0 1px rgba(79, 118, 255, 0.28), 0 18px 60px -28px rgba(29, 77, 255, 0.8);
+}
+
+/* Slow drift for ambient blobs. */
+@keyframes brand-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.06);
+  }
+}
+
+.brand-drift {
+  animation: brand-drift 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-drift {
+    animation: none;
+  }
 }

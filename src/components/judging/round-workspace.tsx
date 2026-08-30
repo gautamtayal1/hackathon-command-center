@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   CloudOff,
   ExternalLink,
-  Loader2,
   RefreshCw,
 } from "lucide-react";
 import {
@@ -112,15 +111,6 @@ export function RoundWorkspace({
 
   const summaries = Object.values(cards);
   const unsavedCount = summaries.filter((card) => card.dirty).length;
-  const savedCount = teams.filter((team) => {
-    const card = cards[team.id];
-
-    if (card) {
-      return card.scored && !card.dirty;
-    }
-
-    return (team.score?.score ?? 0) > 0;
-  }).length;
   const scoredCount = teams.filter((team) => {
     const card = cards[team.id];
 
@@ -197,30 +187,14 @@ export function RoundWorkspace({
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-20 -mx-1 rounded-[20px] border border-[#303030] bg-[#171717]/95 px-4 py-3 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium">
-          <span className="flex items-center gap-2 text-white">
-            <CheckCircle2 className="size-4 text-[#15b5b0]" aria-hidden="true" />
-            {savedCount} of {teams.length} saved to the server
-          </span>
-          {unsavedCount ? (
-            <span className="flex items-center gap-2 text-[#ffd8a8]">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              {unsavedCount} kept on this device, sending automatically
-            </span>
-          ) : (
-            <span className="text-[#9b9b9b]">
-              Every score is stored on this device as you type.
-            </span>
-          )}
-          {!online ? (
-            <span className="flex items-center gap-2 text-[#ffd1df]">
-              <CloudOff className="size-4" aria-hidden="true" />
-              Offline - scores are held here until the connection is back
-            </span>
-          ) : null}
+      {/* Silent while everything is fine; speaks up only when it matters. */}
+      {!online ? (
+        <div className="flex items-center gap-2 rounded-[20px] border border-[#6d5321] bg-[#241d10] px-4 py-3 text-sm font-medium text-[#ffe2ad]">
+          <CloudOff className="size-4 shrink-0" aria-hidden="true" />
+          No connection. Your scores are safe - keep going, they will send
+          themselves.
         </div>
-      </div>
+      ) : null}
 
       {sessionLost ? (
         <div className="rounded-[20px] border border-[#6d5321] bg-[#241d10] p-4">
@@ -229,9 +203,8 @@ export function RoundWorkspace({
             Your sign-in expired
           </p>
           <p className="mt-2 text-sm font-medium leading-6 text-[#e2cfa8]">
-            Nothing is lost. Every score on this page is stored in this browser.
-            Sign in again in a new tab, then press retry - this page stays
-            exactly as it is.
+            Your scores are safe. Sign in again in a new tab, then press retry -
+            this page stays exactly as it is.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <a
@@ -345,7 +318,6 @@ function TeamScoreCard({
   );
   const [values, setValues] = useState<DraftValues>(serverValues);
   const [syncedValues, setSyncedValues] = useState<DraftValues>(serverValues);
-  const [restored, setRestored] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<{
     code: string;
@@ -379,7 +351,6 @@ function TeamScoreCard({
     if (hasAnyValue(draftValues) && !sameValues(draftValues, serverValues)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage, which cannot be read during the server render
       setValues(draftValues);
-      setRestored(true);
     }
     // Runs once per card: later renders must never overwrite live typing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -563,14 +534,7 @@ function TeamScoreCard({
               <ExternalLink className="size-4" aria-hidden="true" />
             </a>
           ) : null}
-          <SaveState
-            dirty={dirty}
-            saving={saving}
-            complete={complete}
-            failure={failure}
-            everSaved={everSaved}
-            restored={restored}
-          />
+          <SaveState dirty={dirty} failure={failure} everSaved={everSaved} />
         </div>
 
         <button
@@ -579,7 +543,7 @@ function TeamScoreCard({
           disabled={saving}
           className="h-11 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
         >
-          {saving ? "Saving" : dirty ? "Save now" : "Saved"}
+          {saving ? "Saving" : dirty ? "Save" : "Saved"}
         </button>
       </div>
 
@@ -595,61 +559,34 @@ function TeamScoreCard({
 
 function SaveState({
   dirty,
-  saving,
-  complete,
   failure,
   everSaved,
-  restored,
 }: {
   dirty: boolean;
-  saving: boolean;
-  complete: boolean;
   failure: { code: string; message: string } | null;
   everSaved: boolean;
-  restored: boolean;
 }) {
-  if (saving) {
-    return (
-      <p className="flex items-center gap-2 text-xs font-semibold text-[#b4b4b4]">
-        <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-        Saving to the server
-      </p>
-    );
-  }
-
-  if (dirty && failure) {
+  // A judge should see nothing while this is working. Saving, buffering and
+  // retrying are all silent; only a stuck save is worth their attention.
+  if (dirty && failure && failure.code !== "invalid") {
     return (
       <p className="flex items-center gap-2 text-xs font-semibold text-[#ffd8a8]">
         <AlertTriangle className="size-3.5" aria-hidden="true" />
-        Held on this device, retrying
+        Not sent yet - retrying
       </p>
     );
   }
 
-  if (dirty) {
-    return (
-      <p className="flex items-center gap-2 text-xs font-semibold text-[#ffd8a8]">
-        <CheckCircle2 className="size-3.5" aria-hidden="true" />
-        {complete
-          ? "Saved on this device, sending"
-          : "Saved on this device, finish all four scores to send"}
-      </p>
-    );
-  }
-
-  if (everSaved) {
+  if (!dirty && everSaved) {
     return (
       <p className="flex items-center gap-2 text-xs font-semibold text-[#15b5b0]">
         <CheckCircle2 className="size-3.5" aria-hidden="true" />
-        Saved to the server
-        {restored ? " (restored from this device)" : ""}
+        Scored
       </p>
     );
   }
 
-  return (
-    <p className="text-xs font-semibold text-[#8f8f8f]">Not scored yet</p>
-  );
+  return null;
 }
 
 function ScoreInput({
