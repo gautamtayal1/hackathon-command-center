@@ -312,8 +312,15 @@ async function inviteJudgeByEmail(email: string) {
   }
 
   try {
+    const origin = await getRequestOrigin();
     const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.auth.admin.inviteUserByEmail(email);
+    // Without an explicit redirect the invite mail falls back to the Supabase
+    // Site URL, which drops the judge on the homepage instead of their round.
+    const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+        DEFAULT_JUDGE_PATH,
+      )}`,
+    });
 
     if (error) {
       const message = error.message.toLowerCase();
