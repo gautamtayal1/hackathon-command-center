@@ -103,6 +103,7 @@ function serializeApplication(application: PrismaApplication): HackathonApplicat
     id: application.id,
     teamName: application.teamName,
     participantsFullName: application.participantsFullName,
+    participantEmails: application.participantEmails,
     githubRepoUrl: application.githubRepoUrl,
     builtDescription: application.builtDescription,
     createdAt: application.createdAt.toISOString(),

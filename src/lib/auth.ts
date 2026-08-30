@@ -1,6 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
+import { isJudgePath } from "@/lib/judging";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -51,9 +52,7 @@ export async function requireUser(next = "/") {
   const user = await getCurrentUser();
 
   if (!user) {
-    const loginPath = next.startsWith("/judge")
-      ? "/judge/login"
-      : "/admin/login";
+    const loginPath = isJudgePath(next) ? "/judge/login" : "/admin/login";
 
     redirect(`${loginPath}?next=${encodeURIComponent(next)}`);
   }
@@ -151,11 +150,15 @@ export async function requireAdminForHackathon(hackathonId: string) {
   return context;
 }
 
-export async function requireJudgeForHackathon(hackathonId: string) {
-  const user = await requireUser(`/judge/${hackathonId}`);
-  await upsertUserProfile(user);
+type JudgeRow = NonNullable<Awaited<ReturnType<typeof findJudgeRow>>>;
 
-  const judge = await prisma.judge.findFirst({
+export type JudgeLookup =
+  | { status: "no-session" }
+  | { status: "not-a-judge" }
+  | { status: "ok"; user: DrakiUser; judge: JudgeRow };
+
+async function findJudgeRow(hackathonId: string, user: DrakiUser) {
+  return prisma.judge.findFirst({
     where: {
       hackathonId,
       OR: [{ userId: user.id }, { email: user.email }],
@@ -163,9 +166,28 @@ export async function requireJudgeForHackathon(hackathonId: string) {
     },
     include: { hackathon: true },
   });
+}
+
+/**
+ * Same lookup as requireJudgeForHackathon but it reports a missing session
+ * instead of redirecting. Server actions use this so a token that expired
+ * while a scoring page sat open cannot navigate the judge away mid-score.
+ */
+export async function lookupJudgeForHackathon(
+  hackathonId: string,
+): Promise<JudgeLookup> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return { status: "no-session" };
+  }
+
+  await upsertUserProfile(user);
+
+  const judge = await findJudgeRow(hackathonId, user);
 
   if (!judge) {
-    throw new AccessDeniedError("You are not assigned to judge this hackathon.");
+    return { status: "not-a-judge" };
   }
 
   if (!judge.userId || judge.inviteStatus !== "ACCEPTED") {
@@ -179,7 +201,26 @@ export async function requireJudgeForHackathon(hackathonId: string) {
     });
   }
 
-  return { user, judge };
+  return { status: "ok", user, judge };
+}
+
+export async function requireJudgeForHackathon(
+  hackathonId: string,
+  nextPath = `/judge/${hackathonId}`,
+) {
+  const lookup = await lookupJudgeForHackathon(hackathonId);
+
+  if (lookup.status === "no-session") {
+    const loginPath = isJudgePath(nextPath) ? "/judge/login" : "/admin/login";
+
+    redirect(`${loginPath}?next=${encodeURIComponent(nextPath)}`);
+  }
+
+  if (lookup.status === "not-a-judge") {
+    throw new AccessDeniedError("You are not assigned to judge this hackathon.");
+  }
+
+  return { user: lookup.user, judge: lookup.judge };
 }
 
 async function assignOrphanHackathonsToWorkspace(workspaceId: string) {

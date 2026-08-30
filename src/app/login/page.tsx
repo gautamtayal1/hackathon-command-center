@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Gavel, Shield } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { DEFAULT_JUDGE_PATH, isJudgePath } from "@/lib/judging";
 import { HashSessionHandler } from "@/app/login/hash-session-handler";
 
 type LoginPageProps = {
@@ -44,9 +45,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="grid gap-3 sm:grid-cols-2">
           <AccessCard
             href={`/admin/login?next=${encodeURIComponent(
-              nextPath === "/judge" || nextPath.startsWith("/judge/")
-                ? "/"
-                : nextPath,
+              isJudgePath(nextPath) ? "/" : nextPath,
             )}`}
             icon="admin"
             title="Admin"
@@ -54,7 +53,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           />
           <AccessCard
             href={`/judge/login?next=${encodeURIComponent(
-              nextPath.startsWith("/judge") ? nextPath : "/judge",
+              isJudgePath(nextPath) ? nextPath : DEFAULT_JUDGE_PATH,
             )}`}
             icon="judge"
             title="Judge"

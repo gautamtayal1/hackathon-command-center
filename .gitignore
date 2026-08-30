@@ -12,3 +12,10 @@ VoiceInk/
 prisma/dev.db
 prisma/dev.db-journal
 src/generated/prisma
+.vercel
+
+# Local operator scripts holding judge credentials - never commit
+.judge-creds.mjs
+.seed-judge-invites.mjs
+.claude-logs/
+.tmp-*.mjs

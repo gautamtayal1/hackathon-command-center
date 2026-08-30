@@ -1593,12 +1593,13 @@ function ApplicationsWorkspace({
         </div>
         {latestApplications.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] border-separate border-spacing-y-2 text-left">
+            <table className="w-full min-w-[1000px] border-separate border-spacing-y-2 text-left">
               <thead>
                 <tr className="text-xs font-medium text-[#8f8f8f]">
                   <th className="w-12 px-3 py-1">#</th>
                   <th className="px-3 py-1">Team</th>
                   <th className="px-3 py-1">Applicant names</th>
+                  <th className="px-3 py-1">Emails</th>
                   <th className="px-3 py-1">Repo</th>
                   <th className="px-3 py-1">Built</th>
                   <th className="px-3 py-1">Submitted</th>
@@ -1625,6 +1626,23 @@ function ApplicationsWorkspace({
                       <span className="block truncate">
                         {application.participantsFullName}
                       </span>
+                    </td>
+                    <td className="max-w-[240px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      {application.participantEmails.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {application.participantEmails.map((email) => (
+                            <a
+                              key={email}
+                              href={`mailto:${email}`}
+                              className="block truncate text-xs transition hover:text-white"
+                            >
+                              {email}
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[#8f8f8f]">—</span>
+                      )}
                     </td>
                     <td className="bg-[#212121] px-3 py-3">
                       <a

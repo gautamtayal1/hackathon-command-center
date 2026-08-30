@@ -10,6 +10,12 @@
   --accent: #f4f4f4;
   --accent-ink: #000000;
   --ink: #f4f4f4;
+
+  /* 8x brand (8x.social) */
+  --brand: #1d4dff;
+  --brand-strong: #0021cc;
+  --brand-deep: #00115f;
+  --brand-ink: #ffffff;
 }
 
 * {
@@ -55,7 +61,7 @@ button:disabled {
 }
 
 :where(button, a, input, select):focus-visible {
-  outline: 2px solid #f4f4f4;
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 

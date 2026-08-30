@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { DEFAULT_JUDGE_PATH, isJudgePath } from "@/lib/judging";
 import { JudgeLoginForm } from "@/app/login/login-form";
 
 type JudgeLoginPageProps = {
@@ -14,7 +15,7 @@ export default async function JudgeLoginPage({
   searchParams,
 }: JudgeLoginPageProps) {
   const params = await searchParams;
-  const nextPath = safeNextPath(params.next, "/judge");
+  const nextPath = safeNextPath(params.next, DEFAULT_JUDGE_PATH);
   const user = await getCurrentUser();
 
   if (user) {
@@ -53,7 +54,7 @@ function safeNextPath(next: string | undefined, fallback: string) {
     return fallback;
   }
 
-  if (!next.startsWith("/judge")) {
+  if (!isJudgePath(next)) {
     return fallback;
   }
 

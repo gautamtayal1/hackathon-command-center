@@ -1,0 +1,2 @@
+ALTER TABLE "Application"
+  ADD COLUMN IF NOT EXISTS "participantEmails" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

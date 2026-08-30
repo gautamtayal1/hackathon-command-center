@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DEFAULT_JUDGE_PATH, isJudgePath } from "@/lib/judging";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function HashSessionHandler({ nextPath }: { nextPath: string }) {
@@ -35,7 +36,7 @@ export function HashSessionHandler({ nextPath }: { nextPath: string }) {
     );
 
     const supabase = createSupabaseBrowserClient();
-    const destination = nextPath.startsWith("/judge") ? nextPath : "/judge";
+    const destination = isJudgePath(nextPath) ? nextPath : DEFAULT_JUDGE_PATH;
 
     void supabase.auth
       .setSession({

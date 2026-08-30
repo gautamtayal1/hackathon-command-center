@@ -15,16 +15,14 @@ import {
   type JudgeInput,
   type TaskInput,
 } from "@/lib/board";
-import {
-  getAdminContext,
-  requireAdminForHackathon,
-  requireJudgeForHackathon,
-} from "@/lib/auth";
+import { getAdminContext, requireAdminForHackathon } from "@/lib/auth";
+import { DEFAULT_JUDGE_PATH, isJudgePath } from "@/lib/judging";
 import {
   createHackathonFromLumaInScope,
   selectHackathonInScope,
 } from "@/lib/hackathons";
 import { prisma } from "@/lib/prisma";
+import { getJudgesForApplication } from "@/lib/rounds";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
 
@@ -108,16 +106,6 @@ function cleanJudgeInput(input: JudgeInput) {
   return { name, email, groupId: groupId || null, groupNumber };
 }
 
-function cleanScoreValue(value: FormDataEntryValue | null, label: string) {
-  const score = Number(value);
-
-  if (!Number.isInteger(score) || score < 1 || score > 10) {
-    throw new Error(`${label} must be a number from 1 to 10.`);
-  }
-
-  return score;
-}
-
 function cleanEmail(value: string) {
   const email = value.trim().toLowerCase();
 
@@ -129,8 +117,8 @@ function cleanEmail(value: string) {
 }
 
 function safeJudgeNextPath(value: string) {
-  if (!value || !value.startsWith("/judge") || value.startsWith("//")) {
-    return "/judge";
+  if (!value || value.startsWith("//") || !isJudgePath(value)) {
+    return DEFAULT_JUDGE_PATH;
   }
 
   return value;
@@ -157,6 +145,40 @@ function cleanRequiredText(value: string, label: string) {
   }
 
   return cleaned;
+}
+
+function cleanParticipantEmails(values: string[]) {
+  const seen = new Set<string>();
+  const emails: string[] = [];
+
+  for (const value of values) {
+    const email = value.trim().toLowerCase();
+
+    if (!email) {
+      continue;
+    }
+
+    if (!isEmailFormatValid(email)) {
+      throw new Error(`"${value.trim()}" is not a valid email address.`);
+    }
+
+    if (seen.has(email)) {
+      continue;
+    }
+
+    seen.add(email);
+    emails.push(email);
+  }
+
+  if (emails.length === 0) {
+    throw new Error("At least one participant email is required.");
+  }
+
+  return emails;
+}
+
+function isEmailFormatValid(value: string) {
+  return /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(value);
 }
 
 function normalizeGithubRepoUrl(rawUrl: string) {
@@ -223,6 +245,7 @@ async function cleanApplicationInput(input: ApplicationInput) {
       input.participantsFullName,
       "Participants full name",
     ),
+    participantEmails: cleanParticipantEmails(input.participantEmails),
     githubRepoUrl,
     builtDescription: cleanRequiredText(
       input.builtDescription,
@@ -735,6 +758,8 @@ export async function deleteJudge(id: string) {
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
   message: string;
+  /** Judges the team will pitch to, shown on the confirmation screen. */
+  judgeNames?: string[];
 };
 
 export type JudgeLoginFormState = {
@@ -817,22 +842,30 @@ export async function submitApplication(
     const data = await cleanApplicationInput({
       teamName: String(formData.get("teamName") ?? ""),
       participantsFullName: String(formData.get("participantsFullName") ?? ""),
+      participantEmails: formData
+        .getAll("participantEmails")
+        .map((value) => String(value)),
       githubRepoUrl: String(formData.get("githubRepoUrl") ?? ""),
       builtDescription: String(formData.get("builtDescription") ?? ""),
     });
 
-    await prisma.application.create({
+    const application = await prisma.application.create({
       data: {
         ...data,
         hackathonId: hackathon.id,
       },
     });
 
+    // Assign straight away so the team leaves the form knowing who judges them.
+    await ensureApplicationAssignments(hackathon.id);
+    const { judgeNames } = await getJudgesForApplication(application.id);
+
     revalidatePath("/");
     revalidatePath("/preview");
+    revalidatePath("/roster");
     revalidatePath(`/apply/${hackathon.id}`);
 
-    return { status: "success", message: "OK" };
+    return { status: "success", message: "OK", judgeNames };
   } catch (error) {
     return {
       status: "error",
@@ -850,86 +883,6 @@ export async function deleteApplication(id: string) {
 
   revalidatePath("/");
   revalidatePath("/preview");
-}
-
-export async function upsertJudgeScore(
-  hackathonId: string,
-  applicationId: string,
-  formData: FormData,
-) {
-  const { judge } = await requireJudgeForHackathon(hackathonId);
-
-  if (!judge.groupId) {
-    throw new Error("You are not assigned to a judging group yet.");
-  }
-
-  const application = await prisma.application.findFirst({
-    where: { id: applicationId, hackathonId },
-    select: { id: true },
-  });
-
-  if (!application) {
-    throw new Error("Application not found.");
-  }
-
-  const assignment = await prisma.applicationAssignment.findFirst({
-    where: {
-      hackathonId,
-      applicationId: application.id,
-      groupId: judge.groupId,
-    },
-    select: { id: true },
-  });
-
-  if (!assignment) {
-    throw new Error("This application is assigned to another judging group.");
-  }
-
-  const pitchScore = cleanScoreValue(formData.get("pitchScore"), "Pitch");
-  const potentialScore = cleanScoreValue(
-    formData.get("potentialScore"),
-    "Potential",
-  );
-  const uiUxScore = cleanScoreValue(formData.get("uiUxScore"), "UI/UX");
-  const executionScore = cleanScoreValue(
-    formData.get("executionScore"),
-    "Execution",
-  );
-  const score = Math.round(
-    (pitchScore + potentialScore + uiUxScore + executionScore) / 4,
-  );
-  const note = String(formData.get("note") ?? "").trim();
-
-  await prisma.score.upsert({
-    where: {
-      applicationId_judgeId: {
-        applicationId: application.id,
-        judgeId: judge.id,
-      },
-    },
-    update: {
-      score,
-      pitchScore,
-      potentialScore,
-      uiUxScore,
-      executionScore,
-      note,
-    },
-    create: {
-      hackathonId,
-      applicationId: application.id,
-      judgeId: judge.id,
-      score,
-      pitchScore,
-      potentialScore,
-      uiUxScore,
-      executionScore,
-      note,
-    },
-  });
-
-  revalidatePath(`/judge/${hackathonId}`);
-  revalidatePath("/");
 }
 
 export async function createHackathonFromLuma(input: HackathonInput) {

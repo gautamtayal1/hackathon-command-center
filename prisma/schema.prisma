@@ -63,6 +63,7 @@ model Hackathon {
   lumaUrl       String?
   startsAt      DateTime?
   isActive      Boolean       @default(false)
+  currentRound  Int           @default(1)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   tasks         Task[]
@@ -91,6 +92,8 @@ model Judge {
   inviteStatus JudgeInviteStatus @default(CONTACT)
   invitedAt    DateTime?
   acceptedAt   DateTime?
+  round1SubmittedAt DateTime?
+  round2SubmittedAt DateTime?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   scores       Score[]
@@ -107,8 +110,10 @@ model Application {
   hackathon            Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   teamName             String
   participantsFullName String
+  participantEmails    String[]
   githubRepoUrl        String
   builtDescription     String
+  isFinalist           Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   scores               Score[]
@@ -156,17 +161,19 @@ model Score {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   judgeId       String
   judge         Judge       @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  round         Int         @default(1)
   score         Int         @default(0)
   pitchScore    Int         @default(0)
   potentialScore Int        @default(0)
   uiUxScore     Int         @default(0)
   executionScore Int        @default(0)
+  iterationScore Int        @default(0)
   note          String      @default("")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  @@unique([applicationId, judgeId])
-  @@index([hackathonId])
+  @@unique([applicationId, judgeId, round])
+  @@index([hackathonId, round])
   @@index([judgeId])
 }
 

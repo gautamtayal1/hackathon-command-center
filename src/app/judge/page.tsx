@@ -33,7 +33,7 @@ export default async function JudgeHomePage() {
             {assignments.map((assignment) => (
               <Link
                 key={assignment.id}
-                href={`/judge/${assignment.hackathonId}`}
+                href="/round1"
                 className="flex items-center justify-between gap-4 rounded-[20px] border border-[#303030] bg-[#212121] px-5 py-4 transition hover:border-[#4a4a4a] hover:bg-[#252525]"
               >
                 <span className="min-w-0">

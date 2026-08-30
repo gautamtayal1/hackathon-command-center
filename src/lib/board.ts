@@ -139,6 +139,7 @@ export type HackathonApplication = {
   id: string;
   teamName: string;
   participantsFullName: string;
+  participantEmails: string[];
   githubRepoUrl: string;
   builtDescription: string;
   createdAt: string;
@@ -160,6 +161,7 @@ export type JudgingApplication = HackathonApplication & {
 export type ApplicationInput = {
   teamName: string;
   participantsFullName: string;
+  participantEmails: string[];
   githubRepoUrl: string;
   builtDescription: string;
 };
