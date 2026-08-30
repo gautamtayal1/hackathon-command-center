@@ -102,8 +102,10 @@ export function ApplicationForm({
   }
 
   if (state.status === "success") {
+    const judgeNames = state.judgeNames ?? [];
+
     return (
-      <div className="grid min-h-[260px] place-items-center rounded-[20px] border border-[#303030] bg-[#212121] px-6 text-center shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
+      <div className="grid min-h-[260px] place-items-center rounded-[20px] border border-[#303030] bg-[#212121] px-6 py-10 text-center shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
         <div>
           <p className="text-5xl font-semibold tracking-[-0.05em] text-white">
             OK
@@ -111,6 +113,24 @@ export function ApplicationForm({
           <p className="mt-3 text-sm font-medium text-[#9b9b9b]">
             Application submitted.
           </p>
+
+          {judgeNames.length ? (
+            <div className="mt-8 rounded-[20px] bg-black px-6 py-5">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-[#6d78a6] uppercase">
+                {judgeNames.length === 1 ? "Your judge" : "Your judges"}
+              </p>
+              <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-white">
+                {judgeNames.join(" & ")}
+              </p>
+              <p className="mt-3 text-sm font-medium text-[#9b9b9b]">
+                You will pitch to them in round 1.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-8 rounded-[20px] bg-black px-6 py-5 text-sm font-medium text-[#9b9b9b]">
+              Your judge is assigned shortly before judging starts.
+            </p>
+          )}
         </div>
       </div>
     );
