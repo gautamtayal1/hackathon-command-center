@@ -44,7 +44,7 @@ export default async function PreviewDashboard() {
   } = await getDashboardData();
 
   return (
-    <main className="min-h-screen bg-black text-[#f4f4f4]">
+    <main className="min-h-screen bg-background text-ink">
       <Board
         hackathons={hackathons}
         activeHackathon={activeHackathon}

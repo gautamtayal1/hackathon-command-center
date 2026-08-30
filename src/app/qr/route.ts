@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     type: "svg",
     margin: 1,
     color: {
-      dark: "#000000",
+      dark: "#0a0a0b",
       light: "#ffffff",
     },
   });

@@ -10,19 +10,19 @@ export default async function RosterScreen() {
   const teamCount = roster.reduce((total, judge) => total + judge.teams.length, 0);
 
   return (
-    <main className="min-h-screen bg-black px-6 py-10 text-[#f4f4f4] sm:px-10">
+    <main className="min-h-screen bg-background px-6 py-10 text-ink sm:px-10">
       <ScreenRefresh />
       <div className="mx-auto w-full max-w-[1600px]">
         <header className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-lg font-semibold text-[#9b9b9b]">
+            <p className="text-lg font-semibold text-ink-3">
               {hackathon.name} / Round 1
             </p>
             <h1 className="mt-2 text-6xl font-semibold tracking-[-0.045em] text-white">
               Who judges you
             </h1>
           </div>
-          <p className="rounded-[20px] border border-[#303030] px-5 py-3 text-lg font-semibold text-[#b4b4b4]">
+          <p className="rounded-[20px] border border-edge px-5 py-3 text-lg font-semibold text-ink-3">
             {roster.length} judges / {teamCount} teams
           </p>
         </header>
@@ -32,11 +32,11 @@ export default async function RosterScreen() {
             {roster.map((judge) => (
               <section
                 key={judge.id}
-                className="rounded-[24px] border border-[#303030] bg-[#212121] p-6"
+                className="rounded-[24px] border border-edge bg-p-card p-6"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#8f8f8f]">
+                    <p className="text-sm font-semibold text-ink-4">
                       {judge.groupName ?? "No group"}
                     </p>
                     <h2 className="mt-1 truncate text-3xl font-semibold tracking-[-0.04em] text-white">
@@ -45,7 +45,7 @@ export default async function RosterScreen() {
                   </div>
                   {judge.submittedRoundOne ? (
                     <CheckCircle2
-                      className="mt-1 size-6 shrink-0 text-[#15b5b0]"
+                      className="mt-1 size-6 shrink-0 text-ok"
                       aria-label="Round 1 submitted"
                     />
                   ) : null}
@@ -56,22 +56,22 @@ export default async function RosterScreen() {
                     {judge.teams.map((team, index) => (
                       <li
                         key={team.id}
-                        className="rounded-[18px] bg-black px-4 py-3"
+                        className="rounded-[18px] bg-background px-4 py-3"
                       >
                         <p className="text-xl font-semibold tracking-[-0.03em] text-white">
-                          <span className="mr-2 text-[#8f8f8f]">
+                          <span className="mr-2 text-ink-4">
                             {index + 1}.
                           </span>
                           {team.teamName}
                         </p>
-                        <p className="mt-1 truncate text-sm font-medium text-[#9b9b9b]">
+                        <p className="mt-1 truncate text-sm font-medium text-ink-3">
                           {team.participantsFullName}
                         </p>
                       </li>
                     ))}
                   </ol>
                 ) : (
-                  <p className="mt-5 rounded-[18px] bg-black px-4 py-3 text-sm font-medium text-[#9b9b9b]">
+                  <p className="mt-5 rounded-[18px] bg-background px-4 py-3 text-sm font-medium text-ink-3">
                     No teams assigned yet.
                   </p>
                 )}
@@ -79,7 +79,7 @@ export default async function RosterScreen() {
             ))}
           </div>
         ) : (
-          <p className="rounded-[24px] border border-[#303030] bg-[#212121] p-8 text-xl font-medium text-[#b4b4b4]">
+          <p className="rounded-[24px] border border-edge bg-p-card p-8 text-xl font-medium text-ink-3">
             No judges added yet.
           </p>
         )}

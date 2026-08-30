@@ -174,11 +174,11 @@ export function RoundWorkspace({
 
   if (!teams.length) {
     return (
-      <div className="rounded-[20px] border border-[#303030] bg-[#212121] p-6">
+      <div className="rounded-[20px] border border-edge bg-p-card p-6">
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
           {emptyTitle}
         </h2>
-        <p className="mt-2 text-sm font-medium leading-6 text-[#b4b4b4]">
+        <p className="mt-2 text-sm font-medium leading-6 text-ink-3">
           {emptyBody}
         </p>
       </div>
@@ -189,7 +189,7 @@ export function RoundWorkspace({
     <div className="space-y-3">
       {/* Silent while everything is fine; speaks up only when it matters. */}
       {!online ? (
-        <div className="flex items-center gap-2 rounded-[20px] border border-[#6d5321] bg-[#241d10] px-4 py-3 text-sm font-medium text-[#ffe2ad]">
+        <div className="flex items-center gap-2 rounded-[20px] border border-warn-line bg-warn-soft px-4 py-3 text-sm font-medium text-warn">
           <CloudOff className="size-4 shrink-0" aria-hidden="true" />
           No connection. Your scores are safe - keep going, they will send
           themselves.
@@ -197,12 +197,12 @@ export function RoundWorkspace({
       ) : null}
 
       {sessionLost ? (
-        <div className="rounded-[20px] border border-[#6d5321] bg-[#241d10] p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold text-[#ffe2ad]">
+        <div className="rounded-[20px] border border-warn-line bg-warn-soft p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-warn">
             <AlertTriangle className="size-4" aria-hidden="true" />
             Your sign-in expired
           </p>
-          <p className="mt-2 text-sm font-medium leading-6 text-[#e2cfa8]">
+          <p className="mt-2 text-sm font-medium leading-6 text-warn">
             Your scores are safe. Sign in again in a new tab, then press retry -
             this page stays exactly as it is.
           </p>
@@ -211,7 +211,7 @@ export function RoundWorkspace({
               href={`/judge/login?next=/round${round}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black transition hover:bg-white"
+              className="inline-flex h-10 items-center gap-2 rounded-[20px] brand-btn px-4 text-sm font-semibold transition"
             >
               Sign in again
               <ExternalLink className="size-4" aria-hidden="true" />
@@ -219,7 +219,7 @@ export function RoundWorkspace({
             <button
               type="button"
               onClick={() => setRetryToken((token) => token + 1)}
-              className="inline-flex h-10 items-center gap-2 rounded-[20px] border border-[#4a4a4a] px-4 text-sm font-semibold text-white transition hover:bg-[#252525]"
+              className="inline-flex h-10 items-center gap-2 rounded-[20px] border border-edge-strong px-4 text-sm font-semibold text-white transition hover:bg-surface-3"
             >
               <RefreshCw className="size-4" aria-hidden="true" />
               Retry saving
@@ -242,18 +242,18 @@ export function RoundWorkspace({
         />
       ))}
 
-      <div className="rounded-[20px] border border-[#303030] bg-[#212121] p-5">
+      <div className="rounded-[20px] border border-edge bg-p-card p-5">
         {submitted ? (
           <div className="flex items-center gap-3">
             <CheckCircle2
-              className="size-5 shrink-0 text-[#15b5b0]"
+              className="size-5 shrink-0 text-ok"
               aria-hidden="true"
             />
             <div>
               <p className="text-lg font-semibold tracking-[-0.03em] text-white">
                 Round {round} submitted
               </p>
-              <p className="mt-1 text-sm font-medium text-[#9b9b9b]">
+              <p className="mt-1 text-sm font-medium text-ink-3">
                 You can still change a score above; it updates the results
                 straight away.
               </p>
@@ -265,7 +265,7 @@ export function RoundWorkspace({
               <p className="text-lg font-semibold tracking-[-0.03em] text-white">
                 Finish round {round}
               </p>
-              <p className="mt-1 text-sm font-medium text-[#9b9b9b]">
+              <p className="mt-1 text-sm font-medium text-ink-3">
                 {scoredCount} of {teams.length} teams scored.
                 {round === 1
                   ? " Submitting sends your top team to the finals."
@@ -276,7 +276,7 @@ export function RoundWorkspace({
               type="button"
               onClick={handleSubmitRound}
               disabled={submitting}
-              className="h-11 shrink-0 rounded-[20px] bg-[#f4f4f4] px-5 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
+              className="h-11 shrink-0 rounded-[20px] brand-btn px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
             >
               {submitting ? "Submitting" : `Submit round ${round}`}
             </button>
@@ -284,7 +284,7 @@ export function RoundWorkspace({
         )}
 
         {error ? (
-          <p className="mt-4 rounded-[20px] border border-[#6d2142] bg-[#2a111c] px-4 py-3 text-sm font-medium text-[#ffd1df]">
+          <p className="mt-4 rounded-[20px] border border-bad-line bg-bad-soft px-4 py-3 text-sm font-medium text-bad">
             {error}
           </p>
         ) : null}
@@ -474,21 +474,21 @@ function TeamScoreCard({
   const total = totalOf(values);
 
   return (
-    <div className="rounded-[20px] border border-[#303030] bg-[#212121] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
+    <div className="rounded-[20px] border border-edge bg-p-card p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-[#8f8f8f]">
+          <p className="text-xs font-semibold text-ink-4">
             Round {round} / Team {index + 1}
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">
             {team.teamName}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-[#b4b4b4]">
+          <p className="mt-2 text-sm font-medium leading-6 text-ink-3">
             {team.builtDescription}
           </p>
         </div>
-        <div className="rounded-[20px] bg-black px-4 py-3 text-right">
-          <p className="text-xs font-semibold text-[#8f8f8f]">Your total</p>
+        <div className="rounded-[20px] bg-background px-4 py-3 text-right">
+          <p className="text-xs font-semibold text-ink-4">Your total</p>
           <p className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">
             {total > 0 ? total : "-"}
           </p>
@@ -508,7 +508,7 @@ function TeamScoreCard({
       </div>
 
       <label className="mt-4 block">
-        <span className="mb-2 block text-sm font-semibold text-[#b4b4b4]">
+        <span className="mb-2 block text-sm font-semibold text-ink-3">
           Note
         </span>
         <textarea
@@ -516,19 +516,19 @@ function TeamScoreCard({
           rows={2}
           value={values.note}
           onChange={(event) => update({ note: event.target.value })}
-          className="w-full resize-none rounded-[20px] border border-[#303030] bg-black px-4 py-3 text-sm font-medium text-white outline-none transition focus:border-[#4a4a4a]"
+          className="w-full resize-none rounded-[20px] border border-edge bg-background px-4 py-3 text-sm font-medium text-white outline-none transition focus:border-edge-strong"
         />
       </label>
 
-      <div className="mt-4 grid gap-3 border-t border-[#303030] pt-4 sm:grid-cols-[minmax(0,1fr)_160px]">
-        <div className="space-y-2 text-sm font-medium text-[#b4b4b4]">
+      <div className="mt-4 grid gap-3 border-t border-edge pt-4 sm:grid-cols-[minmax(0,1fr)_160px]">
+        <div className="space-y-2 text-sm font-medium text-ink-3">
           <p>{team.participantsFullName}</p>
           {team.githubRepoUrl ? (
             <a
               href={team.githubRepoUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 text-white transition hover:text-[#15b5b0]"
+              className="inline-flex items-center gap-2 text-white transition hover:text-ok"
             >
               GitHub repo
               <ExternalLink className="size-4" aria-hidden="true" />
@@ -541,14 +541,14 @@ function TeamScoreCard({
           type="button"
           onClick={() => void save()}
           disabled={saving}
-          className="h-11 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
+          className="h-11 rounded-[20px] brand-btn px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
         >
           {saving ? "Saving" : dirty ? "Save" : "Saved"}
         </button>
       </div>
 
       {failure ? (
-        <p className="mt-3 rounded-[20px] border border-[#6d2142] bg-[#2a111c] px-4 py-3 text-sm font-medium text-[#ffd1df]">
+        <p className="mt-3 rounded-[20px] border border-bad-line bg-bad-soft px-4 py-3 text-sm font-medium text-bad">
           {failure.message}
         </p>
       ) : null}
@@ -570,7 +570,7 @@ function SaveState({
   // retrying are all silent; only a stuck save is worth their attention.
   if (dirty && failure && failure.code !== "invalid") {
     return (
-      <p className="flex items-center gap-2 text-xs font-semibold text-[#ffd8a8]">
+      <p className="flex items-center gap-2 text-xs font-semibold text-warn">
         <AlertTriangle className="size-3.5" aria-hidden="true" />
         Not sent yet - retrying
       </p>
@@ -579,7 +579,7 @@ function SaveState({
 
   if (!dirty && everSaved) {
     return (
-      <p className="flex items-center gap-2 text-xs font-semibold text-[#15b5b0]">
+      <p className="flex items-center gap-2 text-xs font-semibold text-ok">
         <CheckCircle2 className="size-3.5" aria-hidden="true" />
         Scored
       </p>
@@ -601,8 +601,8 @@ function ScoreInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block rounded-[20px] bg-black p-3">
-      <span className="block text-xs font-semibold text-[#8f8f8f]">{label}</span>
+    <label className="block rounded-[20px] bg-background p-3">
+      <span className="block text-xs font-semibold text-ink-4">{label}</span>
       <input
         name={name}
         type="number"
@@ -611,7 +611,7 @@ function ScoreInput({
         max={10}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 w-full rounded-[18px] border border-[#303030] bg-[#171717] px-3 text-base font-semibold text-white outline-none transition focus:border-[#4a4a4a]"
+        className="mt-2 h-10 w-full rounded-[18px] border border-edge bg-surface px-3 text-base font-semibold text-white outline-none transition focus:border-edge-strong"
       />
     </label>
   );

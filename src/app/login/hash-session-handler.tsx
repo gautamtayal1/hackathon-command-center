@@ -60,13 +60,13 @@ export function HashSessionHandler({ nextPath }: { nextPath: string }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black px-4 text-[#f4f4f4]">
-      <div className="w-full max-w-[420px] rounded-[20px] border border-[#303030] bg-[#212121] p-6">
-        <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background px-4 text-ink">
+      <div className="w-full max-w-[420px] rounded-[20px] border border-edge bg-p-card p-6">
+        <p className="text-sm font-semibold text-ink-3">Draki Judges</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
           {status === "loading" ? "Opening judge access" : "Link not valid"}
         </h1>
-        <p className="mt-3 text-sm font-medium leading-6 text-[#b4b4b4]">
+        <p className="mt-3 text-sm font-medium leading-6 text-ink-3">
           {status === "loading"
             ? "We are verifying your secure link."
             : message || "Request a new judge link and try again."}

@@ -23,8 +23,8 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000",
-          color: "#f4f4f4",
+          background: "#0a0a0b",
+          color: "#fafafa",
           fontFamily:
             "ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif",
           padding: "24px",
@@ -34,8 +34,8 @@ export default function GlobalError({
           style={{
             maxWidth: "520px",
             width: "100%",
-            border: "1px solid #303030",
-            background: "#212121",
+            border: "1px solid #27272a",
+            background: "#17171b",
             borderRadius: "20px",
             padding: "24px",
           }}
@@ -43,7 +43,7 @@ export default function GlobalError({
           <h1 style={{ margin: 0, fontSize: "24px", letterSpacing: "-0.04em" }}>
             Something went wrong
           </h1>
-          <p style={{ marginTop: "12px", lineHeight: 1.6, color: "#b4b4b4" }}>
+          <p style={{ marginTop: "12px", lineHeight: 1.6, color: "#a1a1aa" }}>
             If you were scoring, your scores are safe in this browser and come
             back on reload. Do not clear your browser data.
           </p>
@@ -56,8 +56,8 @@ export default function GlobalError({
               padding: "0 20px",
               borderRadius: "20px",
               border: "none",
-              background: "#f4f4f4",
-              color: "#000",
+              background: "#ac35d7",
+              color: "#ffffff",
               fontSize: "14px",
               fontWeight: 600,
               cursor: "pointer",

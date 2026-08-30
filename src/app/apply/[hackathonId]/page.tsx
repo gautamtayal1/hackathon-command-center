@@ -49,10 +49,10 @@ export default async function ApplyPage({ params }: ApplyPageProps) {
     : null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-[#f4f4f4] selection:bg-[#1d4dff] selection:text-white">
+    <div className="relative min-h-screen overflow-hidden bg-background text-ink selection:bg-accent-soft selection:text-ink">
       <BrandGlow />
 
-      <header className="relative z-10 border-b border-[#1c1c1c]/80">
+      <header className="relative z-10 border-b border-p-card/80">
         <div className="mx-auto flex w-full max-w-[820px] items-center justify-between gap-4 px-5 py-5 sm:px-8">
           <a
             href="https://8x.social"
@@ -60,16 +60,16 @@ export default async function ApplyPage({ params }: ApplyPageProps) {
             rel="noreferrer"
             className="group flex items-center gap-2.5 rounded-full transition"
           >
-            <EightXLogo className="h-5 w-auto text-white transition group-hover:text-[#4f76ff]" />
-            <span className="h-4 w-px bg-[#2c2c2c]" aria-hidden="true" />
-            <span className="text-[13px] font-semibold tracking-[-0.01em] text-[#8f8f8f] transition group-hover:text-[#d6d6d6]">
+            <EightXLogo className="h-5 w-auto text-ink transition group-hover:text-accent" />
+            <span className="h-4 w-px bg-edge" aria-hidden="true" />
+            <span className="text-[13px] font-semibold tracking-[-0.01em] text-ink-4 transition group-hover:text-ink-2">
               Hackathons
             </span>
           </a>
 
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#26262a] bg-[#111114] px-3 py-1.5 text-[11px] font-semibold tracking-[0.1em] text-[#9b9b9b] uppercase">
+          <span className="inline-flex items-center gap-2 rounded-full border border-edge bg-surface px-3 py-1.5 text-[11px] font-semibold tracking-[0.1em] text-ink-3 uppercase">
             <span
-              className="size-1.5 rounded-full bg-[#1d4dff] shadow-[0_0_10px_rgba(29,77,255,0.9)]"
+              className="size-1.5 rounded-full bg-btn shadow-[0_0_10px_rgba(231,74,255,0.9)]"
               aria-hidden="true"
             />
             Submissions open
@@ -79,13 +79,13 @@ export default async function ApplyPage({ params }: ApplyPageProps) {
 
       <main className="relative z-10 px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
         <section className="mx-auto w-full max-w-[820px]">
-          <p className="text-[11px] font-semibold tracking-[0.18em] text-[#6d78a6] uppercase">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-accent uppercase">
             Project submission
           </p>
-          <h1 className="mt-3 text-4xl leading-[1.05] font-semibold tracking-[-0.045em] text-white sm:text-[56px]">
+          <h1 className="font-display mt-3 text-4xl leading-[1.05] tracking-[-0.045em] text-ink sm:text-[56px]">
             {hackathon.name}
           </h1>
-          <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed font-medium text-[#9b9b9b]">
+          <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed font-medium text-ink-3">
             Tell us who you are and what you shipped. One submission per team —
             you can pitch the details live to your judges in round 1.
           </p>
@@ -100,14 +100,14 @@ export default async function ApplyPage({ params }: ApplyPageProps) {
             <ApplicationForm hackathonId={hackathon.id} />
           </div>
 
-          <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-[#1c1c1c] pt-6 text-[13px] font-medium text-[#6f6f6f]">
+          <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-p-card pt-6 text-[13px] font-medium text-ink-4">
             <span className="flex items-center gap-2">
               Hosted by
               <a
                 href="https://8x.social"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[#d6d6d6] transition hover:text-white"
+                className="inline-flex items-center gap-1.5 text-ink-2 transition hover:text-white"
               >
                 <EightXLogo className="h-3 w-auto" />
               </a>
@@ -122,7 +122,7 @@ export default async function ApplyPage({ params }: ApplyPageProps) {
 
 function MetaChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-[#232326] bg-[#0e0e11] px-3 py-1.5 text-[12px] font-medium text-[#9b9b9b]">
+    <span className="inline-flex items-center rounded-full border border-surface-3 bg-surface px-3 py-1.5 text-[12px] font-medium text-ink-3">
       {children}
     </span>
   );
@@ -131,8 +131,8 @@ function MetaChip({ children }: { children: React.ReactNode }) {
 function BrandGlow() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <div className="absolute -top-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(29,77,255,0.22),transparent)] blur-[10px]" />
-      <div className="absolute top-[38%] -right-32 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,rgba(0,33,204,0.16),transparent)]" />
+      <div className="absolute -top-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(231,74,255,0.22),transparent)] blur-[10px]" />
+      <div className="absolute top-[38%] -right-32 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,rgba(231,74,255,0.16),transparent)]" />
     </div>
   );
 }

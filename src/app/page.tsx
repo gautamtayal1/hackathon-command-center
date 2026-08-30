@@ -56,7 +56,7 @@ export default async function Home() {
     await getDashboardData(adminContext.workspace.id);
 
   return (
-    <main className="min-h-screen bg-black text-[#f4f4f4]">
+    <main className="min-h-screen bg-background text-ink">
       <Board
         hackathons={hackathons}
         activeHackathon={activeHackathon}
@@ -91,13 +91,13 @@ export default async function Home() {
 
 function AdminAccessDenied() {
   return (
-    <main className="grid min-h-screen place-items-center bg-black px-4 text-[#f4f4f4]">
-      <section className="w-full max-w-[440px] rounded-[20px] border border-[#303030] bg-[#212121] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-        <p className="text-sm font-semibold text-[#9b9b9b]">Draki</p>
+    <main className="grid min-h-screen place-items-center bg-background px-4 text-ink">
+      <section className="w-full max-w-[440px] rounded-[20px] border border-edge bg-p-card p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <p className="text-sm font-semibold text-ink-3">Draki</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">
           No admin access
         </h1>
-        <p className="mt-3 text-sm font-medium leading-6 text-[#b4b4b4]">
+        <p className="mt-3 text-sm font-medium leading-6 text-ink-3">
           This account is signed in, but it is not an admin of this workspace.
           Judges should use the judge portal from their invite.
         </p>

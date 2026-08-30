@@ -31,21 +31,21 @@ export function TaskCard({
           onEditTitle(task, String(formData.get("title") ?? ""));
           setIsEditing(false);
         }}
-        className="flex min-h-[52px] items-center gap-2 rounded-[20px] bg-[#212121] px-3 py-2.5"
+        className="flex min-h-[52px] items-center gap-2 rounded-[20px] bg-p-card px-3 py-2.5"
       >
         <input
           name="title"
           required
           autoFocus
           defaultValue={task.title}
-          className="h-8 min-w-0 flex-1 rounded-[16px] border border-transparent bg-[#171717] px-3 text-sm font-medium text-[#f4f4f4] outline-none transition focus:border-[#303030]"
+          className="h-8 min-w-0 flex-1 rounded-[16px] border border-transparent bg-surface px-3 text-sm font-medium text-ink outline-none transition focus:border-edge"
         />
         <button
           type="submit"
           disabled={pending}
           title="Save task"
           aria-label="Save task"
-          className="grid size-8 place-items-center rounded-[16px] bg-[#203d3b] text-[#a8fffb] transition hover:bg-[#284a48] disabled:opacity-50"
+          className="grid size-8 place-items-center rounded-[16px] bg-ok-soft text-ok transition hover:bg-ok-line disabled:opacity-50"
         >
           <Check className="size-3.5" aria-hidden="true" />
         </button>
@@ -54,7 +54,7 @@ export function TaskCard({
           title="Cancel edit"
           aria-label="Cancel edit"
           onClick={() => setIsEditing(false)}
-          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#2f2f2f] hover:text-white"
+          className="grid size-8 place-items-center rounded-[16px] text-ink-3 transition hover:bg-edge hover:text-white"
         >
           <X className="size-3.5" aria-hidden="true" />
         </button>
@@ -69,8 +69,8 @@ export function TaskCard({
       data-main-task={locked ? "true" : "false"}
       data-task-id={task.id}
       data-task-title={task.title}
-      className={`group flex min-h-[52px] items-center gap-3 rounded-[20px] bg-[#212121] px-3 py-2.5 transition hover:bg-[#262626] ${
-        task.completed ? "text-[#8f8f8f]" : "text-[#f4f4f4]"
+      className={`group flex min-h-[52px] items-center gap-3 rounded-[20px] bg-p-card px-3 py-2.5 transition hover:bg-edge ${
+        task.completed ? "text-ink-4" : "text-ink"
       }`}
     >
       <button
@@ -81,8 +81,8 @@ export function TaskCard({
         onClick={() => onToggle(task)}
         className={`grid size-7 shrink-0 place-items-center rounded-full border transition disabled:opacity-40 ${
           task.completed
-            ? "border-[#f4f4f4] bg-[#f4f4f4] text-black"
-            : "border-[#555] bg-transparent text-[#8f8f8f] hover:border-[#f4f4f4] hover:text-[#f4f4f4]"
+            ? "border-ink brand-btn text-white"
+            : "border-edge-strong bg-transparent text-ink-4 hover:border-ink hover:text-ink"
         }`}
       >
         {task.completed ? (
@@ -105,7 +105,7 @@ export function TaskCard({
           aria-label="Edit task"
           disabled={pending || isOptimistic}
           onClick={() => setIsEditing(true)}
-          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#333] hover:text-white disabled:opacity-35"
+          className="grid size-8 place-items-center rounded-[16px] text-ink-3 transition hover:bg-surface-3 hover:text-white disabled:opacity-35"
         >
           <Pencil className="size-3.5" aria-hidden="true" />
         </button>
@@ -115,7 +115,7 @@ export function TaskCard({
           aria-label="Delete task"
           disabled={pending || isOptimistic}
           onClick={() => onDelete(task.id)}
-          className="grid size-8 place-items-center rounded-[16px] text-[#b4b4b4] transition hover:bg-[#333] hover:text-white disabled:opacity-35"
+          className="grid size-8 place-items-center rounded-[16px] text-ink-3 transition hover:bg-surface-3 hover:text-white disabled:opacity-35"
         >
           <Trash2 className="size-3.5" aria-hidden="true" />
         </button>

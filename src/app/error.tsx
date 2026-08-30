@@ -20,12 +20,12 @@ export default function AppError({
   }, [error]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-black px-4 py-10 text-[#f4f4f4]">
-      <div className="w-full max-w-[520px] rounded-[20px] border border-[#303030] bg-[#212121] p-6">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-ink">
+      <div className="w-full max-w-[520px] rounded-[20px] border border-edge bg-p-card p-6">
         <h1 className="text-2xl font-semibold tracking-[-0.04em] text-white">
           Something went wrong
         </h1>
-        <p className="mt-3 text-sm font-medium leading-6 text-[#b4b4b4]">
+        <p className="mt-3 text-sm font-medium leading-6 text-ink-3">
           If you were scoring, your scores are safe. Every number is stored in
           this browser as you type, and it comes back when the page reloads.
           Do not clear your browser data.
@@ -34,20 +34,20 @@ export default function AppError({
           <button
             type="button"
             onClick={reset}
-            className="h-11 rounded-[20px] bg-[#f4f4f4] px-5 text-sm font-semibold text-black transition hover:bg-white"
+            className="h-11 rounded-[20px] brand-btn px-5 text-sm font-semibold transition"
           >
             Try again
           </button>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-11 rounded-[20px] border border-[#303030] px-5 text-sm font-semibold text-white transition hover:bg-[#252525]"
+            className="h-11 rounded-[20px] border border-edge px-5 text-sm font-semibold text-white transition hover:bg-surface-3"
           >
             Reload the page
           </button>
         </div>
         {error.digest ? (
-          <p className="mt-4 text-xs font-medium text-[#6f6f6f]">
+          <p className="mt-4 text-xs font-medium text-ink-4">
             Reference: {error.digest}
           </p>
         ) : null}

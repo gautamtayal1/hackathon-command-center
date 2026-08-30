@@ -44,7 +44,7 @@ export function AdminLoginForm({ nextPath = "/" }: { nextPath?: string }) {
   return (
     <form action={handleSubmit} className="space-y-4">
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-[#b4b4b4]">
+        <span className="mb-2 block text-sm font-medium text-ink-3">
           Email
         </span>
         <input
@@ -52,13 +52,13 @@ export function AdminLoginForm({ nextPath = "/" }: { nextPath?: string }) {
           type="email"
           required
           autoComplete="email"
-          className="h-12 w-full rounded-[20px] border border-[#303030] bg-[#212121] px-4 text-base font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#4a4a4a] focus:bg-[#252525]"
+          className="h-12 w-full rounded-[20px] border border-edge bg-p-card px-4 text-base font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-edge-strong focus:bg-surface-3"
           placeholder="you@email.com"
         />
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-[#b4b4b4]">
+        <span className="mb-2 block text-sm font-medium text-ink-3">
           Password
         </span>
         <input
@@ -66,13 +66,13 @@ export function AdminLoginForm({ nextPath = "/" }: { nextPath?: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="h-12 w-full rounded-[20px] border border-[#303030] bg-[#212121] px-4 text-base font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#4a4a4a] focus:bg-[#252525]"
+          className="h-12 w-full rounded-[20px] border border-edge bg-p-card px-4 text-base font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-edge-strong focus:bg-surface-3"
           placeholder="Your private password"
         />
       </label>
 
       {message ? (
-        <p className="rounded-[20px] border border-[#303030] bg-[#191919] px-4 py-3 text-sm font-medium text-[#d6d6d6]">
+        <p className="rounded-[20px] border border-edge bg-p-card px-4 py-3 text-sm font-medium text-ink-2">
           {message}
         </p>
       ) : null}
@@ -80,7 +80,7 @@ export function AdminLoginForm({ nextPath = "/" }: { nextPath?: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex h-11 items-center gap-2 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black shadow-[0_14px_42px_rgba(0,0,0,0.42)] transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
+        className="inline-flex h-11 items-center gap-2 rounded-[20px] brand-btn px-4 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(0,0,0,0.42)] transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
       >
         {isPending ? "Opening" : "Enter admin"}
         <ArrowRight className="size-4" aria-hidden="true" />
@@ -99,7 +99,7 @@ export function JudgeLoginForm({ nextPath = "/judge" }: { nextPath?: string }) {
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={nextPath} />
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-[#b4b4b4]">
+        <span className="mb-2 block text-sm font-medium text-ink-3">
           Judge email
         </span>
         <input
@@ -107,7 +107,7 @@ export function JudgeLoginForm({ nextPath = "/judge" }: { nextPath?: string }) {
           type="email"
           required
           autoComplete="email"
-          className="h-12 w-full rounded-[20px] border border-[#303030] bg-[#212121] px-4 text-base font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#4a4a4a] focus:bg-[#252525]"
+          className="h-12 w-full rounded-[20px] border border-edge bg-p-card px-4 text-base font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-edge-strong focus:bg-surface-3"
           placeholder="judge@email.com"
         />
       </label>
@@ -116,8 +116,8 @@ export function JudgeLoginForm({ nextPath = "/judge" }: { nextPath?: string }) {
         <p
           className={`rounded-[20px] border px-4 py-3 text-sm font-medium ${
             state.status === "error"
-              ? "border-[#6d2142] bg-[#2a111c] text-[#ffd1df]"
-              : "border-[#303030] bg-[#191919] text-[#d6d6d6]"
+              ? "border-bad-line bg-bad-soft text-bad"
+              : "border-edge bg-p-card text-ink-2"
           }`}
         >
           {state.message}
@@ -127,7 +127,7 @@ export function JudgeLoginForm({ nextPath = "/judge" }: { nextPath?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-11 items-center gap-2 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black shadow-[0_14px_42px_rgba(0,0,0,0.42)] transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
+        className="inline-flex h-11 items-center gap-2 rounded-[20px] brand-btn px-4 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(0,0,0,0.42)] transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
       >
         {pending ? "Checking" : "Send judge link"}
         <ArrowRight className="size-4" aria-hidden="true" />

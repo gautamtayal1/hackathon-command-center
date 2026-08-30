@@ -7,6 +7,7 @@ import { getCurrentHackathon, getRoundOneTeams } from "@/lib/rounds";
 import { RoundWorkspace } from "@/components/judging/round-workspace";
 import { JudgingErrorBoundary } from "@/components/judging/error-boundary";
 import { SessionKeepAlive } from "@/components/judging/session-keep-alive";
+import { BrandLockup } from "@/components/brand/brand-lockup";
 
 export const dynamic = "force-dynamic";
 
@@ -17,19 +18,20 @@ export default async function RoundOnePage() {
   const submitted = Boolean(judge.round1SubmittedAt);
 
   return (
-    <main className="min-h-screen bg-black px-4 py-8 text-[#f4f4f4] sm:px-6">
+    <main className="brand-bg min-h-screen px-4 py-8 text-ink sm:px-6">
       <section className="mx-auto w-full max-w-[920px]">
         <SessionKeepAlive />
+        <BrandLockup className="mb-7" />
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#9b9b9b]">
-              Round 1 / Judging as {judge.name}
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-accent uppercase">
+              Round 1 · Judging as {judge.name}
             </p>
             <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
               {hackathon.name}
             </h1>
           </div>
-          <p className="rounded-[20px] border border-[#303030] px-4 py-2 text-sm font-semibold text-[#b4b4b4]">
+          <p className="rounded-[20px] border border-accent-line bg-accent-soft px-4 py-2 text-sm font-semibold text-accent">
             {teams.length} {teams.length === 1 ? "team" : "teams"}
           </p>
         </div>
@@ -50,7 +52,7 @@ export default async function RoundOnePage() {
         {submitted ? (
           <Link
             href="/round2"
-            className="mt-3 inline-flex h-11 items-center gap-2 rounded-[20px] border border-[#303030] bg-[#212121] px-5 text-sm font-semibold text-white transition hover:border-[#4a4a4a] hover:bg-[#252525]"
+            className="brand-btn mt-3 inline-flex h-11 items-center gap-2 rounded-[20px] px-5 text-sm font-semibold transition"
           >
             Go to round 2
             <ArrowRight className="size-4" aria-hidden="true" />

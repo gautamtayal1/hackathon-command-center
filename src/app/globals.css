@@ -1,49 +1,84 @@
 @import "tailwindcss";
 
+/* The palette is 8x-core's, verbatim: near-black zinc neutrals with the orchid
+   accent oklch(72% 0.3 315). This app is dark-only, so only 8x-core's `.dark`
+   block is carried over. Derived tints use color-mix so they track the accent. */
 :root {
-  /* ── 8x brand core (8x.social) ───────────────────────────── */
-  --brand: #1d4dff;
-  --brand-lit: #4f76ff;
-  --brand-strong: #0021cc;
-  --brand-deep: #00115f;
-  --brand-ink: #ffffff;
+  color-scheme: dark;
 
-  /* ── 8x extended spectrum ────────────────────────────────── */
-  --violet: #a855f7;
-  --indigo: #6366f1;
-  --cyan: #22d3ee;
-  --mint: #2ee6c5;
-  --pink: #ff2d87;
-  --amber: #ffb020;
-  --lime: #a3e635;
+  /* Surfaces, deepest to lightest. */
+  --background: #0a0a0b;
+  --surface-0: #09090b;
+  --surface: #121214;
+  --p-card: #17171b;
+  --surface-3: #1f1f23;
+  --edge: #27272a;
+  --edge-strong: #3f3f46;
+  --edge-soft: #1f1f23;
 
-  /* ── Surfaces (midnight blue, not flat black) ────────────── */
-  --background: #05060f;
-  --surface-0: #070919;
-  --surface-1: #0e1128;
-  --surface-2: #141833;
-  --surface-3: #1b2044;
-  --line: #262c5c;
-  --line-soft: #1c2148;
+  /* Ink, brightest to dimmest. */
+  --ink: #fafafa;
+  --ink-2: #d4d4d8;
+  --ink-3: #a1a1aa;
+  --ink-4: #71717a;
 
-  /* ── Ink ─────────────────────────────────────────────────── */
-  --foreground: #eef1ff;
-  --ink: #eef1ff;
-  --ink-2: #cdd4f7;
-  --muted: #a6afdd;
-  --muted-2: #8b93c6;
-  --muted-3: #737cb0;
+  /* Orchid accent. `--accent` is the lightened dark-mode reading value;
+     `--btn` is the saturated fill that carries white label text. */
+  --accent: color-mix(in oklab, oklch(72% 0.3 315) 55%, white);
+  --btn: oklch(72% 0.3 315);
+  --btn-hover: color-mix(in oklab, oklch(72% 0.3 315) 82%, black);
+  --btn-fg: #ffffff;
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 32%, transparent);
+  --row-hover: rgba(39, 39, 42, 0.4);
+  --focus-ring: color-mix(in oklab, var(--accent) 18%, transparent);
 
-  --panel: #141833;
-  --panel-strong: #0e1128;
-  --accent: var(--brand);
-  --accent-ink: #ffffff;
+  /* Status, from 8x-core's emerald / amber / rose usage. */
+  --ok: #6ee7b7;
+  --ok-soft: color-mix(in oklab, #6ee7b7 12%, transparent);
+  --ok-line: color-mix(in oklab, #6ee7b7 34%, transparent);
+  --warn: #fcd34d;
+  --warn-soft: color-mix(in oklab, #fcd34d 12%, transparent);
+  --warn-line: color-mix(in oklab, #fcd34d 34%, transparent);
+  --bad: #fda4af;
+  --bad-soft: color-mix(in oklab, #fda4af 12%, transparent);
+  --bad-line: color-mix(in oklab, #fda4af 34%, transparent);
+}
 
-  /* ── Signature gradients ─────────────────────────────────── */
-  --grad-brand: linear-gradient(112deg, #1d4dff 0%, #7c3aed 46%, #ff2d87 100%);
-  --grad-brand-soft: linear-gradient(112deg, #4f76ff 0%, #a855f7 48%, #ff5fa2 100%);
-  --grad-cool: linear-gradient(120deg, #22d3ee 0%, #4f76ff 55%, #a855f7 100%);
-  --grad-warm: linear-gradient(120deg, #ffb020 0%, #ff2d87 60%, #a855f7 100%);
+@theme inline {
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+
+  --color-background: var(--background);
+  --color-surface-0: var(--surface-0);
+  --color-surface: var(--surface);
+  --color-p-card: var(--p-card);
+  --color-surface-3: var(--surface-3);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-edge-soft: var(--edge-soft);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-btn: var(--btn);
+  --color-btn-hover: var(--btn-hover);
+  --color-btn-fg: var(--btn-fg);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-line: var(--ok-line);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-bad-line: var(--bad-line);
 }
 
 * {
@@ -53,15 +88,15 @@
 html {
   min-width: 320px;
   background: var(--background);
-  scrollbar-color: #2c3468 transparent;
+  overscroll-behavior: none;
+  scrollbar-color: var(--edge-strong) transparent;
 }
 
 body {
-  position: relative;
   min-height: 100vh;
   margin: 0;
   background: var(--background);
-  color: var(--foreground);
+  color: var(--ink);
   font-family:
     var(--font-body),
     ui-sans-serif,
@@ -69,25 +104,11 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-}
-
-/* Ambient 8x colour mesh behind everything. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(58rem 34rem at 8% -8%, rgba(29, 77, 255, 0.3), transparent 62%),
-    radial-gradient(46rem 30rem at 96% 4%, rgba(168, 85, 247, 0.22), transparent 60%),
-    radial-gradient(52rem 32rem at 82% 94%, rgba(255, 45, 135, 0.16), transparent 62%),
-    radial-gradient(40rem 28rem at 12% 88%, rgba(34, 211, 238, 0.14), transparent 60%);
-}
-
-body > * {
-  position: relative;
-  z-index: 1;
+  font-feature-settings:
+    "cv11" 1,
+    "ss01" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -110,7 +131,7 @@ button:disabled {
 }
 
 :where(button, a, input, select):focus-visible {
-  outline: 2px solid var(--brand-lit);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -126,21 +147,14 @@ button:disabled {
 }
 
 ::selection {
-  background: rgba(29, 77, 255, 0.55);
-  color: #fff;
+  background: color-mix(in oklab, var(--accent) 25%, var(--surface));
+  color: var(--ink);
   text-shadow: none;
 }
 
 ::-moz-selection {
-  background: rgba(29, 77, 255, 0.55);
-  color: #fff;
-  text-shadow: none;
-}
-
-input::selection,
-textarea::selection {
-  background: rgba(29, 77, 255, 0.55);
-  color: #fff;
+  background: color-mix(in oklab, var(--accent) 25%, var(--surface));
+  color: var(--ink);
 }
 
 ::-webkit-scrollbar {
@@ -153,44 +167,34 @@ textarea::selection {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2c3468;
+  background: var(--edge-strong);
   border: 3px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3f4a92;
-  background-clip: content-box;
-}
-
 .font-display {
   font-family: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
 }
 
-/* ── 8x component primitives ───────────────────────────────── */
+/* ── 8x primitives ─────────────────────────────────────────────── */
 
-/* Primary action: the 8x gradient pill. */
+/* The one primary action. A flat orchid fill, as in 8x-core: the gradient it
+   replaced read as decoration rather than as the thing to press. */
 .brand-btn {
-  position: relative;
-  color: #fff !important;
-  background-image: var(--grad-brand);
-  background-size: 180% 180%;
-  background-position: 0% 50%;
-  box-shadow:
-    0 10px 30px -12px rgba(29, 77, 255, 0.85),
-    0 2px 0 0 rgba(255, 255, 255, 0.14) inset;
+  /* Raw --btn is too light to carry white label text (3.1:1), so the fill is
+     the orchid taken down toward black until it clears AA — 8x-core's --p-cta
+     ratio: 80% lands at 4.96:1, hover at 6.9:1. */
+  background: color-mix(in oklab, var(--btn) 80%, black);
+  color: var(--btn-fg);
   transition:
-    background-position 0.45s ease,
-    box-shadow 0.25s ease,
-    transform 0.15s ease;
+    background 0.18s ease,
+    transform 0.12s ease;
 }
 
 .brand-btn:hover:not(:disabled) {
-  background-position: 100% 50%;
-  box-shadow:
-    0 14px 38px -12px rgba(168, 85, 247, 0.85),
-    0 2px 0 0 rgba(255, 255, 255, 0.2) inset;
+  background: color-mix(in oklab, var(--btn) 68%, black);
 }
 
 .brand-btn:active:not(:disabled) {
@@ -198,82 +202,73 @@ textarea::selection {
 }
 
 .brand-btn:disabled {
-  background-image: none;
-  background-color: var(--surface-3);
-  color: var(--muted-3) !important;
-  box-shadow: none;
+  background: var(--surface-3);
+  color: var(--ink-4);
 }
 
-/* Gradient wordmark / headline text. */
-.brand-text {
-  background-image: var(--grad-brand-soft);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* The orchid wash behind full-page surfaces: 8x-core's `.portal-bg`. */
+.brand-bg {
+  background:
+    radial-gradient(
+      720px 420px at 26% -160px,
+      color-mix(in oklab, var(--accent) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      540px 320px at 100% 18%,
+      color-mix(in oklab, var(--accent) 5%, transparent),
+      transparent 76%
+    ),
+    var(--background);
 }
 
-.brand-text-cool {
-  background-image: var(--grad-cool);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Cards lift with a hairline of light along the top edge, not with colour. */
+.brand-card {
+  position: relative;
+  isolation: isolate;
 }
 
-/* Glassy panel with a faint brand sheen. */
-.brand-panel {
-  background-image: linear-gradient(
-    160deg,
-    rgba(79, 118, 255, 0.09),
-    rgba(168, 85, 247, 0.04) 45%,
-    transparent 78%
-  );
+.brand-card::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  content: "";
+  pointer-events: none;
 }
 
-/* Hairline gradient rule. */
-.brand-rule {
-  height: 1px;
-  border: 0;
-  background-image: linear-gradient(
-    90deg,
-    transparent,
-    rgba(79, 118, 255, 0.7) 18%,
-    rgba(168, 85, 247, 0.7) 52%,
-    rgba(255, 45, 135, 0.6) 78%,
-    transparent
-  );
-}
-
-/* Top accent bar for cards/headers. */
+/* A single accent hairline, for headers and the active card. */
 .brand-topline::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 2px;
-  background-image: var(--grad-brand);
-  opacity: 0.9;
+  height: 1px;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--accent) 70%, transparent) 45%,
+    transparent
+  );
 }
 
-.brand-glow {
-  box-shadow: 0 0 0 1px rgba(79, 118, 255, 0.28), 0 18px 60px -28px rgba(29, 77, 255, 0.8);
-}
-
-/* Slow drift for ambient blobs. */
-@keyframes brand-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
-  50% {
-    transform: translate3d(0, -18px, 0) scale(1.06);
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-.brand-drift {
-  animation: brand-drift 14s ease-in-out infinite;
+.page-enter {
+  animation: page-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand-drift {
+  .page-enter {
     animation: none;
   }
 }

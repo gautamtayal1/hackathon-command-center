@@ -144,15 +144,15 @@ export function ApplicationForm({
     const judgeNames = state.judgeNames ?? [];
 
     return (
-      <div className="overflow-hidden rounded-[24px] border border-[#232326] bg-[#0b0b0e] shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
-        <div className="border-b border-[#1b1b1f] bg-[radial-gradient(120%_140%_at_50%_-40%,rgba(29,77,255,0.28),transparent)] px-6 py-12 text-center sm:px-10">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-[#1d4dff] text-white shadow-[0_0_0_8px_rgba(29,77,255,0.14)]">
+      <div className="overflow-hidden rounded-[24px] border border-surface-3 bg-surface-0 shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
+        <div className="border-b border-p-card bg-[radial-gradient(120%_140%_at_50%_-40%,rgba(231,74,255,0.28),transparent)] px-6 py-12 text-center sm:px-10">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-btn text-white shadow-[0_0_0_8px_rgba(231,74,255,0.14)]">
             <Check className="size-6" strokeWidth={3} aria-hidden="true" />
           </span>
           <h2 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
             Submission received
           </h2>
-          <p className="mx-auto mt-3 max-w-[38ch] text-[15px] font-medium text-[#9b9b9b]">
+          <p className="mx-auto mt-3 max-w-[38ch] text-[15px] font-medium text-ink-3">
             Your project is locked in. Keep your repo public and your demo ready
             for round 1.
           </p>
@@ -160,19 +160,19 @@ export function ApplicationForm({
 
         <div className="px-6 py-6 sm:px-10 sm:py-8">
           {judgeNames.length ? (
-            <div className="rounded-[18px] border border-[#232326] bg-[#111114] px-6 py-6 text-center">
-              <p className="text-[11px] font-semibold tracking-[0.16em] text-[#6d78a6] uppercase">
+            <div className="rounded-[18px] border border-surface-3 bg-surface px-6 py-6 text-center">
+              <p className="text-[11px] font-semibold tracking-[0.16em] text-accent uppercase">
                 {judgeNames.length === 1 ? "Your judge" : "Your judges"}
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white sm:text-3xl">
                 {judgeNames.join(" & ")}
               </p>
-              <p className="mt-3 text-sm font-medium text-[#9b9b9b]">
+              <p className="mt-3 text-sm font-medium text-ink-3">
                 You will pitch to them in round 1.
               </p>
             </div>
           ) : (
-            <p className="rounded-[18px] border border-[#232326] bg-[#111114] px-6 py-5 text-center text-sm font-medium text-[#9b9b9b]">
+            <p className="rounded-[18px] border border-surface-3 bg-surface px-6 py-5 text-center text-sm font-medium text-ink-3">
               Your judge is assigned shortly before judging starts.
             </p>
           )}
@@ -185,7 +185,7 @@ export function ApplicationForm({
     <form
       ref={formRef}
       action={formAction}
-      className="overflow-hidden rounded-[24px] border border-[#232326] bg-[#0b0b0e] shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
+      className="overflow-hidden rounded-[24px] border border-surface-3 bg-surface-0 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
       onPointerDownCapture={handleFormPointerDown}
       onFocus={handleFormFocus}
       onBlur={handleFormBlur}
@@ -224,11 +224,11 @@ export function ApplicationForm({
           />
 
           <fieldset className="block border-0 p-0">
-            <legend className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold tracking-[0.01em] text-[#e4e4e6]">
+            <legend className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold tracking-[0.01em] text-ink-2">
               Participants&apos; emails
               <RequiredMark />
             </legend>
-            <p className="mb-3 text-[12px] font-medium text-[#7b7b7f]">
+            <p className="mb-3 text-[12px] font-medium text-ink-4">
               One per participant — we send judging updates here.
             </p>
 
@@ -263,7 +263,7 @@ export function ApplicationForm({
                           onClick={() => removeEmail(index)}
                           title="Remove email"
                           aria-label={`Remove participant email ${index + 1}`}
-                          className="grid size-9 shrink-0 place-items-center rounded-[12px] border border-transparent text-[#7b7b7f] transition hover:border-[#2c2c31] hover:bg-[#17171b] hover:text-white"
+                          className="grid size-9 shrink-0 place-items-center rounded-[12px] border border-transparent text-ink-4 transition hover:border-edge hover:bg-surface hover:text-white"
                         >
                           <X className="size-4" aria-hidden="true" />
                         </button>
@@ -278,7 +278,7 @@ export function ApplicationForm({
             <button
               type="button"
               onClick={addEmail}
-              className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-[12px] border border-[#2c2c31] bg-[#131317] px-3 text-[13px] font-semibold text-[#c6c6ca] transition hover:border-[#3d4a7a] hover:bg-[#14172a] hover:text-white"
+              className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-[12px] border border-edge bg-surface px-3 text-[13px] font-semibold text-ink-2 transition hover:border-accent hover:bg-surface-3 hover:text-white"
             >
               <Plus className="size-4" aria-hidden="true" />
               Add another email
@@ -286,7 +286,7 @@ export function ApplicationForm({
           </fieldset>
         </FormSection>
 
-        <div className="h-px bg-[#1b1b1f]" />
+        <div className="h-px bg-p-card" />
 
         <FormSection step={2} title="Your project">
           <ApplicationField
@@ -311,9 +311,9 @@ export function ApplicationForm({
         </FormSection>
       </div>
 
-      <div className="border-t border-[#1b1b1f] bg-[#08080a] px-5 py-5 sm:px-8">
+      <div className="border-t border-p-card bg-surface-0 px-5 py-5 sm:px-8">
         {state.status === "error" ? (
-          <p className="mb-4 rounded-[14px] border border-[#6d2142] bg-[#22101a] px-4 py-3 text-sm font-medium text-[#ffd1df]">
+          <p className="mb-4 rounded-[14px] border border-bad-line bg-bad-soft px-4 py-3 text-sm font-medium text-bad">
             {state.message}
           </p>
         ) : null}
@@ -322,7 +322,7 @@ export function ApplicationForm({
           <button
             type="submit"
             disabled={submitDisabled}
-            className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[#1d4dff] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(29,77,255,0.35)] transition hover:bg-[#3a63ff] disabled:cursor-not-allowed disabled:bg-[#1c1c20] disabled:text-[#6f6f74] disabled:shadow-none"
+            className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-btn px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(231,74,255,0.35)] transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-p-card disabled:text-ink-4 disabled:shadow-none"
           >
             {pending ? (
               <>
@@ -337,7 +337,7 @@ export function ApplicationForm({
             )}
           </button>
 
-          <p className="text-[12px] font-medium text-[#6f6f74]">
+          <p className="text-[12px] font-medium text-ink-4">
             {submitDisabled && !pending
               ? "Fill every field to submit."
               : "You can only submit once — double-check before sending."}
@@ -349,11 +349,11 @@ export function ApplicationForm({
 }
 
 const controlBase =
-  "rounded-[14px] border px-3.5 text-[15px] font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#5f5f66]";
+  "rounded-[14px] border px-3.5 text-[15px] font-medium text-ink outline-none transition placeholder:text-ink-4";
 const controlIdle =
-  "border-[#2a2a2f] bg-[#111114] hover:border-[#37373e] focus:border-[#1d4dff] focus:bg-[#0e1020] focus:shadow-[0_0_0_3px_rgba(29,77,255,0.16)]";
+  "border-edge bg-surface hover:border-edge-strong focus:border-btn focus:bg-surface-0 focus:shadow-[0_0_0_3px_rgba(231,74,255,0.16)]";
 const controlError =
-  "border-[#f3197e] bg-[#1e0f18] shadow-[0_0_0_3px_rgba(243,25,126,0.14)]";
+  "border-bad bg-bad-soft shadow-[0_0_0_3px_rgba(253,164,175,0.14)]";
 
 function FormProgress({
   completed,
@@ -365,17 +365,17 @@ function FormProgress({
   const percent = Math.round((Math.min(completed, total) / total) * 100);
 
   return (
-    <div className="border-b border-[#1b1b1f] bg-[#08080a] px-5 py-4 sm:px-8">
+    <div className="border-b border-p-card bg-surface-0 px-5 py-4 sm:px-8">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-semibold tracking-[0.14em] text-[#7b7b7f] uppercase">
+        <span className="text-[11px] font-semibold tracking-[0.14em] text-ink-4 uppercase">
           Application
         </span>
-        <span className="text-[12px] font-semibold text-[#9b9b9b]">
+        <span className="text-[12px] font-semibold text-ink-3">
           {Math.min(completed, total)} of {total} complete
         </span>
       </div>
       <div
-        className="mt-2.5 h-1 overflow-hidden rounded-full bg-[#1a1a1f]"
+        className="mt-2.5 h-1 overflow-hidden rounded-full bg-p-card"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
@@ -383,7 +383,7 @@ function FormProgress({
         aria-label="Application progress"
       >
         <div
-          className="h-full rounded-full bg-[#1d4dff] shadow-[0_0_12px_rgba(29,77,255,0.6)] transition-[width] duration-300"
+          className="h-full rounded-full bg-btn shadow-[0_0_12px_rgba(231,74,255,0.6)] transition-[width] duration-300"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -403,7 +403,7 @@ function FormSection({
   return (
     <section className="space-y-5">
       <div className="flex items-center gap-2.5">
-        <span className="grid size-6 place-items-center rounded-full border border-[#2c2c31] bg-[#111114] text-[11px] font-semibold text-[#8f8f95]">
+        <span className="grid size-6 place-items-center rounded-full border border-edge bg-surface text-[11px] font-semibold text-ink-4">
           {step}
         </span>
         <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-white">
@@ -417,7 +417,7 @@ function FormSection({
 
 function RequiredMark() {
   return (
-    <span aria-label="Required" className="text-[13px] leading-none text-[#4f76ff]">
+    <span aria-label="Required" className="text-[13px] leading-none text-accent">
       *
     </span>
   );
@@ -425,7 +425,7 @@ function RequiredMark() {
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mt-2 block text-[13px] font-medium text-[#ff7aae]">
+    <span className="mt-2 block text-[13px] font-medium text-bad">
       {children}
     </span>
   );
@@ -462,14 +462,14 @@ function ApplicationField({
     <label className="block">
       <span
         className={`mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold tracking-[0.01em] transition-colors ${
-          focused ? "text-white" : "text-[#e4e4e6]"
+          focused ? "text-white" : "text-ink-2"
         }`}
       >
         {label}
         <RequiredMark />
       </span>
       {helper ? (
-        <span className="mb-3 block text-[12px] font-medium text-[#7b7b7f]">
+        <span className="mb-3 block text-[12px] font-medium text-ink-4">
           {helper}
         </span>
       ) : null}

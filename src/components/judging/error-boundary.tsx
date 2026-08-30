@@ -27,11 +27,11 @@ export class JudgingErrorBoundary extends Component<
     }
 
     return (
-      <div className="rounded-[20px] border border-[#6d2142] bg-[#2a111c] p-6">
+      <div className="rounded-[20px] border border-bad-line bg-bad-soft p-6">
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-white">
           This screen hit an error
         </h2>
-        <p className="mt-2 text-sm font-medium leading-6 text-[#ffd1df]">
+        <p className="mt-2 text-sm font-medium leading-6 text-bad">
           Your scores are safe. Everything you typed is stored in this browser
           and comes back when the page reloads. Reload and carry on - do not
           clear your browser data.
@@ -45,14 +45,14 @@ export class JudgingErrorBoundary extends Component<
                 attempt: state.attempt + 1,
               }))
             }
-            className="h-11 rounded-[20px] bg-[#f4f4f4] px-5 text-sm font-semibold text-black transition hover:bg-white"
+            className="h-11 rounded-[20px] brand-btn px-5 text-sm font-semibold transition"
           >
             Try again
           </button>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-11 rounded-[20px] border border-[#6d2142] px-5 text-sm font-semibold text-white transition hover:bg-[#3a1826]"
+            className="h-11 rounded-[20px] border border-bad-line px-5 text-sm font-semibold text-white transition hover:bg-bad-soft"
           >
             Reload the page
           </button>

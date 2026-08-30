@@ -51,6 +51,7 @@ import {
   type TaskInput,
 } from "@/lib/board";
 import { TaskCard } from "@/components/board/task-card";
+import { BrandLockup, BrandMark } from "@/components/brand/brand-lockup";
 
 type BoardActions = {
   autoGenerateJudgeGroups: () => Promise<void>;
@@ -657,7 +658,7 @@ export function Board({
 
   return (
     <div
-      className={`grid min-h-screen bg-black text-[#f4f4f4] ${
+      className={`grid min-h-screen bg-background text-ink ${
         sidebarCollapsed
           ? "md:grid-cols-[72px_minmax(0,1fr)]"
           : "md:grid-cols-[255px_minmax(0,1fr)]"
@@ -685,7 +686,7 @@ export function Board({
         onSelectHackathon={selectHackathon}
       />
 
-      <section className="min-w-0 bg-black">
+      <section className="min-w-0 bg-background">
         <TopBar
           activeHackathon={activeHackathon}
           activeView={activeView}
@@ -696,7 +697,7 @@ export function Board({
 
         <main className="mx-auto flex w-full max-w-[980px] flex-col gap-5 px-4 pb-24 pt-9 sm:px-6 lg:px-8">
           {error ? (
-            <div className="rounded-2xl border border-[#5c1f2f] bg-[#2d1219] px-4 py-3 text-sm font-medium text-[#ffd1df]">
+            <div className="rounded-2xl border border-bad-line bg-bad-soft px-4 py-3 text-sm font-medium text-bad">
               {error}
             </div>
           ) : null}
@@ -819,14 +820,18 @@ function Sidebar({
 
   return (
     <aside
-      className={`flex min-h-screen flex-col border-r border-[#242424] bg-[#070707] px-3 py-3 transition-[width] ${
+      className={`relative flex min-h-screen flex-col border-r border-edge bg-surface-0/85 px-3 py-3 backdrop-blur-xl transition-[width] ${
         collapsed ? "items-center" : ""
       }`}
     >
       <div className="mb-6 flex items-center justify-between px-1">
-        {collapsed ? null : (
-          <h1 className="text-xl font-semibold tracking-[-0.03em] text-white">
-            Draki
+        {collapsed ? (
+          <span title="Draki by 8x">
+            <BrandMark />
+          </span>
+        ) : (
+          <h1>
+            <BrandLockup label="Draki" />
           </h1>
         )}
         <button
@@ -835,7 +840,7 @@ function Sidebar({
           aria-label={collapsed ? "Open sidebar" : "Close sidebar"}
           aria-pressed={collapsed}
           onClick={onToggleCollapsed}
-          className="grid size-9 place-items-center rounded-lg text-[#b4b4b4] transition hover:bg-[#1f1f1f] hover:text-white"
+          className="grid size-9 place-items-center rounded-lg text-ink-3 transition hover:bg-surface-3 hover:text-white"
         >
           {collapsed ? (
             <PanelLeft className="size-4" aria-hidden="true" />
@@ -851,8 +856,8 @@ function Sidebar({
           onClick={onToggleComposer}
           title="New hackathon"
           aria-label="New hackathon"
-          className={`flex h-10 items-center gap-3 rounded-lg text-left text-white transition hover:bg-[#1f1f1f] ${
-            collapsed ? "w-10 justify-center px-0" : "w-full px-2"
+          className={`brand-btn flex h-10 items-center gap-3 rounded-xl text-left text-sm font-semibold transition ${
+            collapsed ? "w-10 justify-center px-0" : "w-full px-3"
           }`}
         >
           <Plus className="size-4" aria-hidden="true" />
@@ -861,7 +866,7 @@ function Sidebar({
       </nav>
 
       <div className={`${collapsed ? "hidden" : "mt-6"}`}>
-        <p className="mb-2 px-2 text-xs font-semibold text-[#b4b4b4]">
+        <p className="mb-2 px-2 text-[11px] font-semibold tracking-[0.14em] text-accent uppercase">
           Hackathons
         </p>
         <div className="space-y-1">
@@ -871,16 +876,16 @@ function Sidebar({
               type="button"
               disabled={pending || hackathon.id === activeHackathon.id}
               onClick={() => onSelectHackathon(hackathon.id)}
-              className={`w-full rounded-lg px-2 py-2 text-left transition ${
+              className={`w-full rounded-xl border px-2.5 py-2 text-left transition ${
                 hackathon.id === activeHackathon.id
-                  ? "bg-[#212121] text-white"
-                  : "text-[#ececec] hover:bg-[#1f1f1f]"
+                  ? "border-accent-line bg-accent-soft text-ink shadow-[inset_2px_0_0_0_var(--accent)]"
+                  : "border-transparent text-ink-2 hover:border-edge hover:bg-surface-3"
               } disabled:cursor-default`}
             >
               <span className="block truncate text-sm font-medium">
                 {hackathon.name}
               </span>
-              <span className="mt-1 flex items-center gap-1 text-xs text-[#9b9b9b]">
+              <span className="mt-1 flex items-center gap-1 text-xs text-accent">
                 <CalendarDays className="size-3.5" aria-hidden="true" />
                 {formatDate(hackathon.startsAt)}
               </span>
@@ -892,9 +897,9 @@ function Sidebar({
       {collapsed ? null : composerOpen ? (
         <form
           action={onCreateHackathon}
-          className="mt-3 rounded-2xl bg-[#171717] p-2"
+          className="mt-3 rounded-2xl bg-surface p-2"
         >
-          <p className="px-2 pb-2 text-xs font-semibold text-[#b4b4b4]">
+          <p className="px-2 pb-2 text-xs font-semibold text-ink-3">
             Luma event link
           </p>
           <div className="flex gap-2">
@@ -903,14 +908,14 @@ function Sidebar({
               required
               inputMode="url"
               placeholder="https://lu.ma/..."
-              className="h-10 min-w-0 flex-1 rounded-full border border-[#303030] bg-[#0f0f0f] px-3 text-sm text-[#f4f4f4] outline-none placeholder:text-[#8f8f8f] transition focus:border-[#565656] focus:bg-[#212121]"
+              className="h-10 min-w-0 flex-1 rounded-full border border-edge bg-surface-0 px-3 text-sm text-ink outline-none placeholder:text-ink-4 transition focus:border-edge-strong focus:bg-p-card"
             />
             <button
               type="submit"
               disabled={pending}
               title="Add hackathon from Luma"
               aria-label="Add hackathon from Luma"
-              className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f4f4f4] text-black transition hover:bg-white disabled:opacity-50"
+              className="grid size-10 shrink-0 place-items-center rounded-full brand-btn transition disabled:opacity-50"
             >
               <Plus className="size-4" aria-hidden="true" />
             </button>
@@ -923,7 +928,7 @@ function Sidebar({
           href={activeHackathon.lumaUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-2 inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-[#b4b4b4] transition hover:bg-[#1f1f1f] hover:text-white"
+          className="mt-2 inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-ink-3 transition hover:bg-surface-3 hover:text-white"
         >
           <ExternalLink className="size-4" aria-hidden="true" />
           Open Luma
@@ -932,7 +937,7 @@ function Sidebar({
 
       <div className="mt-6">
         {collapsed ? null : (
-          <p className="mb-2 px-2 text-xs font-semibold text-[#b4b4b4]">
+          <p className="mb-2 px-2 text-[11px] font-semibold tracking-[0.14em] text-accent uppercase">
             Workspace
           </p>
         )}
@@ -984,23 +989,30 @@ function Sidebar({
       )}
 
       <div
-        className={`mt-3 flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-[#ececec] ${
+        className={`mt-3 flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-2 ${
           collapsed ? "justify-center" : ""
         }`}
       >
-        <span className="grid size-7 place-items-center rounded-full bg-[#f2a60d] text-xs font-semibold text-black">
+        <span className="grid size-7 place-items-center rounded-full bg-btn text-xs font-semibold text-btn-fg">
           DA
         </span>
         {collapsed ? null : (
           <div className="min-w-0">
             <p className="truncate font-medium">darijan</p>
-            <p className="truncate text-xs text-[#9b9b9b]">Personal account</p>
+            <p className="truncate text-xs text-accent">Organizer · 8x</p>
           </div>
         )}
       </div>
     </aside>
   );
 }
+
+const VIEW_TITLES: Record<ViewId, string> = {
+  todo: "To-do",
+  budget: "Balance",
+  judges: "Judges",
+  applications: "Applications",
+};
 
 function TopBar({
   activeHackathon,
@@ -1015,45 +1027,43 @@ function TopBar({
   remainingTasks: number;
   netCents: number;
 }) {
-  const title =
-    activeView === "todo"
-      ? "To-do"
-      : activeView === "budget"
-        ? "Balance"
-        : activeView === "judges"
-          ? "Judges"
-          : "Applications";
+  const title = VIEW_TITLES[activeView];
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-transparent bg-black/85 px-4 backdrop-blur sm:px-6">
+    <header className="brand-topline sticky top-0 z-10 flex h-14 items-center justify-between overflow-hidden border-b border-edge bg-background/75 px-4 backdrop-blur-xl sm:px-6">
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-[#ececec] transition hover:bg-[#1f1f1f]"
+        className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-ink-2 transition hover:bg-surface-3"
       >
-        {title}
-        <span className="text-[#8f8f8f]">/</span>
-        <span className="max-w-[38vw] truncate text-[#b4b4b4]">
+        <span
+          className="size-2 rounded-full bg-accent shadow-[0_0_12px_var(--accent)]"
+          aria-hidden="true"
+        />
+        <span className="font-semibold text-ink">{title}</span>
+        <span className="text-ink-4">/</span>
+        <span className="max-w-[38vw] truncate text-ink-3">
           {activeHackathon.name}
         </span>
       </button>
 
       <div className="flex items-center gap-2">
-        <span className="hidden items-center gap-2 rounded-full border border-[#303030] px-3 py-1.5 text-xs font-medium text-[#b4b4b4] sm:inline-flex">
-          <CalendarDays className="size-3.5" aria-hidden="true" />
+        <span className="hidden items-center gap-2 rounded-full border border-edge bg-surface px-3 py-1.5 text-xs font-medium text-ink-3 sm:inline-flex">
+          <CalendarDays className="size-3.5 text-ink-4" aria-hidden="true" />
           {formatDate(activeHackathon.startsAt)}
         </span>
-        <Metric label="Done" value={`${completionRate}%`} />
-        <Metric label="Open" value={remainingTasks} />
+        <Metric label="Done" value={`${completionRate}%`} tone="ok" />
+        <Metric label="Open" value={remainingTasks} tone="neutral" />
         <Metric
           label={netCents >= 0 ? "Profit" : "Loss"}
           value={formatCurrency(Math.abs(netCents))}
+          tone={netCents >= 0 ? "ok" : "bad"}
         />
         {activeHackathon.lumaUrl ? (
           <a
             href={activeHackathon.lumaUrl}
             target="_blank"
             rel="noreferrer"
-            className="grid size-9 place-items-center rounded-full text-[#ececec] transition hover:bg-[#1f1f1f]"
+            className="grid size-9 place-items-center rounded-full text-ink-3 transition hover:bg-surface-3 hover:text-white"
             title="Open Luma"
             aria-label="Open Luma"
           >
@@ -1064,7 +1074,7 @@ function TopBar({
           type="button"
           title="More"
           aria-label="More"
-          className="grid size-9 place-items-center rounded-full text-[#ececec] transition hover:bg-[#1f1f1f]"
+          className="grid size-9 place-items-center rounded-full text-ink-3 transition hover:bg-surface-3 hover:text-white"
         >
           <MoreHorizontal className="size-5" aria-hidden="true" />
         </button>
@@ -1108,12 +1118,12 @@ function TaskWorkspace({
             To-do
           </h2>
         </div>
-        <span className="rounded-full border border-[#303030] px-3 py-1.5 text-xs font-medium text-[#b4b4b4]">
+        <span className="rounded-full border border-edge px-3 py-1.5 text-xs font-medium text-ink-3">
           {completedMainTasks}/{mainTasks.length} main
         </span>
       </div>
 
-      <section className="rounded-[20px] bg-[#2f2f2f] p-3">
+      <section className="rounded-[20px] bg-edge p-3">
         <div className="space-y-2">
           {mainTasks.map((task) => (
             <TaskCard
@@ -1160,7 +1170,7 @@ function TaskWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 w-full rounded-[18px] border border-transparent bg-[#212121] px-4 text-sm font-medium text-[#f4f4f4] outline-none placeholder:text-[#8f8f8f] transition focus:border-[#303030] focus:bg-[#1f1f1f]"
+            className="h-10 w-full rounded-[18px] border border-transparent bg-p-card px-4 text-sm font-medium text-ink outline-none placeholder:text-ink-4 transition focus:border-edge focus:bg-surface-3"
           />
         </form>
       </section>
@@ -1215,7 +1225,7 @@ function BudgetWorkspace({
         Balance
       </h2>
 
-      <section className="rounded-[20px] bg-[#2f2f2f] p-3">
+      <section className="rounded-[20px] bg-edge p-3">
         <div className="space-y-2">
           {entries.map((entry) => {
             const isDefaultBudgetLine = DEFAULT_BUDGET_LABELS.has(entry.label);
@@ -1227,7 +1237,7 @@ function BudgetWorkspace({
                 data-budget-label={entry.label}
                 data-budget-locked={isDefaultBudgetLine ? "true" : "false"}
                 action={(formData) => onUpdate(entry.id, formData)}
-                className="grid gap-2 rounded-[20px] bg-[#212121] p-2.5 md:grid-cols-[minmax(0,1fr)_112px_118px_auto]"
+                className="grid gap-2 rounded-[20px] bg-p-card p-2.5 md:grid-cols-[minmax(0,1fr)_112px_118px_auto]"
               >
                 <input
                   name="label"
@@ -1249,7 +1259,7 @@ function BudgetWorkspace({
                       }
                     }
                   }}
-                  className={`h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717] ${
+                  className={`h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface ${
                     isDefaultBudgetLine ? "cursor-default focus:border-transparent focus:bg-transparent" : ""
                   }`}
                 />
@@ -1266,14 +1276,14 @@ function BudgetWorkspace({
                       submitBudgetUpdate(entry.id, event.currentTarget.form);
                     }
                   }}
-                  className="h-10 rounded-[20px] border border-transparent bg-transparent px-2 text-right text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+                  className="h-10 rounded-[20px] border border-transparent bg-transparent px-2 text-right text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
                 />
                 {isDefaultBudgetLine ? (
                   <>
                     <input type="hidden" name="type" value="EXPENSE" />
                     <div
                       data-budget-type-static="true"
-                      className="flex h-10 w-full items-center rounded-[20px] border border-[#3a3a3a] bg-[#303030] px-4 text-sm font-medium text-[#d6d6d6]"
+                      className="flex h-10 w-full items-center rounded-[20px] border border-edge-strong bg-edge px-4 text-sm font-medium text-ink-2"
                     >
                       Expense
                     </div>
@@ -1296,7 +1306,7 @@ function BudgetWorkspace({
                     aria-label="Delete budget line"
                     disabled={pending}
                     onClick={() => onDelete(entry.id)}
-                    className="grid size-10 place-items-center rounded-[20px] text-[#8f8f8f] transition hover:bg-[#333] hover:text-white disabled:opacity-50"
+                    className="grid size-10 place-items-center rounded-[20px] text-ink-4 transition hover:bg-surface-3 hover:text-white disabled:opacity-50"
                   >
                     <Trash2 className="size-4" aria-hidden="true" />
                   </button>
@@ -1309,7 +1319,7 @@ function BudgetWorkspace({
         <form
           key={entries.length}
           action={onCreate}
-          className="mt-2 grid gap-2 rounded-[20px] bg-[#212121] p-2.5 md:grid-cols-[minmax(0,1fr)_112px_118px]"
+          className="mt-2 grid gap-2 rounded-[20px] bg-p-card p-2.5 md:grid-cols-[minmax(0,1fr)_112px_118px]"
         >
           <input
             name="label"
@@ -1321,7 +1331,7 @@ function BudgetWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
           />
           <input
             name="amount"
@@ -1333,7 +1343,7 @@ function BudgetWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 rounded-[20px] border border-transparent bg-transparent px-2 text-right text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+            className="h-10 rounded-[20px] border border-transparent bg-transparent px-2 text-right text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
           />
           <BudgetTypeMenu
             name="type"
@@ -1398,11 +1408,11 @@ function BudgetTypeMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="flex h-10 w-full items-center justify-between gap-2 rounded-[20px] border border-[#3a3a3a] bg-[#303030] px-4 text-sm font-medium text-[#d6d6d6] transition hover:bg-[#3a3a3a] focus:bg-[#3a3a3a]"
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-[20px] border border-edge-strong bg-edge px-4 text-sm font-medium text-ink-2 transition hover:bg-edge-strong focus:bg-edge-strong"
       >
         <span>{selectedType.title}</span>
         <ChevronDown
-          className={`size-4 text-[#b4b4b4] transition ${
+          className={`size-4 text-ink-3 transition ${
             open ? "rotate-180" : ""
           }`}
           aria-hidden="true"
@@ -1413,7 +1423,7 @@ function BudgetTypeMenu({
         <div
           data-budget-type-menu="true"
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] z-30 w-44 rounded-[20px] bg-[#303030] p-2 shadow-[0_18px_80px_rgba(0,0,0,0.45)]"
+          className="absolute right-0 top-[calc(100%+8px)] z-30 w-44 rounded-[20px] bg-edge p-2 shadow-[0_18px_80px_rgba(0,0,0,0.45)]"
         >
           {BUDGET_TYPES.map((type) => {
             const selected = type.id === value;
@@ -1429,8 +1439,8 @@ function BudgetTypeMenu({
                 }
                 className={`flex h-12 w-full items-center justify-between rounded-[16px] px-4 text-left text-[15px] font-medium transition ${
                   selected
-                    ? "bg-[#505050] text-white"
-                    : "text-[#f4f4f4] hover:bg-[#424242]"
+                    ? "bg-edge-strong text-white"
+                    : "text-ink hover:bg-edge-strong"
                 }`}
               >
                 <span>{type.title}</span>
@@ -1458,9 +1468,9 @@ function BalanceTotal({
   return (
     <div
       data-balance-total-label={label}
-      className="rounded-[20px] bg-[#212121] px-4 py-3"
+      className="rounded-[20px] bg-p-card px-4 py-3"
     >
-      <p className="text-xs font-medium text-[#9b9b9b]">{label}</p>
+      <p className="text-xs font-medium text-ink-3">{label}</p>
       <p
         className={`mt-1 font-semibold tracking-[-0.04em] text-white ${
           strong ? "text-2xl" : "text-xl"
@@ -1506,30 +1516,30 @@ function ApplicationsWorkspace({
           <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white">
             Applications
           </h2>
-          <p className="mt-2 text-sm font-medium text-[#9b9b9b]">
+          <p className="mt-2 text-sm font-medium text-ink-3">
             Share the form, scan the QR, then track every submitted team.
           </p>
         </div>
         <div
           data-application-count="true"
-          className="rounded-[20px] bg-[#212121] px-4 py-2 text-right"
+          className="rounded-[20px] bg-p-card px-4 py-2 text-right"
         >
-          <p className="text-xs font-medium text-[#9b9b9b]">Applicants total</p>
+          <p className="text-xs font-medium text-ink-3">Applicants total</p>
           <p className="text-xl font-semibold text-white">
             {latestApplications.length}
           </p>
         </div>
       </div>
 
-      <section className="grid gap-3 rounded-[20px] bg-[#2f2f2f] p-3 md:grid-cols-[minmax(0,1fr)_184px]">
-        <div className="min-w-0 rounded-[20px] bg-[#212121] p-3">
+      <section className="grid gap-3 rounded-[20px] bg-edge p-3 md:grid-cols-[minmax(0,1fr)_184px]">
+        <div className="min-w-0 rounded-[20px] bg-p-card p-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2 text-xs font-medium text-[#9b9b9b]">
+            <div className="flex min-w-0 items-center gap-2 text-xs font-medium text-ink-3">
               <Link className="size-4 shrink-0" aria-hidden="true" />
               Application link
             </div>
             {copied ? (
-              <span className="rounded-full bg-[#303030] px-2.5 py-1 text-xs font-semibold text-white">
+              <span className="rounded-full bg-edge px-2.5 py-1 text-xs font-semibold text-white">
                 Copied
               </span>
             ) : null}
@@ -1538,7 +1548,7 @@ function ApplicationsWorkspace({
             <input
               readOnly
               value={applicationUrl}
-              className="h-10 min-w-0 flex-1 rounded-[20px] border border-transparent bg-[#171717] px-3 text-sm font-medium text-[#f4f4f4] outline-none"
+              className="h-10 min-w-0 flex-1 rounded-[20px] border border-transparent bg-surface px-3 text-sm font-medium text-ink outline-none"
             />
           </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -1546,7 +1556,7 @@ function ApplicationsWorkspace({
               type="button"
               title="Copy application link"
               onClick={copyApplicationLink}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[20px] bg-[#303030] px-4 text-sm font-semibold text-[#d6d6d6] transition hover:bg-[#3a3a3a] hover:text-white"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[20px] bg-edge px-4 text-sm font-semibold text-ink-2 transition hover:bg-edge-strong hover:text-white"
             >
               {copied ? (
                 <Check className="size-4" aria-hidden="true" />
@@ -1560,13 +1570,13 @@ function ApplicationsWorkspace({
               target="_blank"
               rel="noreferrer"
               title="Open application form"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[20px] bg-[#f4f4f4] px-4 text-sm font-semibold text-black transition hover:bg-white"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[20px] brand-btn px-4 text-sm font-semibold transition"
             >
               <ExternalLink className="size-4" aria-hidden="true" />
               Open form
             </a>
           </div>
-          <p className="mt-3 text-xs font-medium text-[#6f6f6f]">
+          <p className="mt-3 text-xs font-medium text-ink-4">
             Name team, participants, public Github repo, one-line build.
           </p>
         </div>
@@ -1582,12 +1592,12 @@ function ApplicationsWorkspace({
         </div>
       </section>
 
-      <section className="rounded-[20px] bg-[#2f2f2f] p-3">
+      <section className="rounded-[20px] bg-edge p-3">
         <div className="mb-3 flex items-center justify-between gap-3 px-1">
           <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
             Latest applications
           </h3>
-          <span className="rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+          <span className="rounded-[20px] bg-p-card px-2.5 py-1 text-xs font-semibold text-ink-3">
             latest on top
           </span>
         </div>
@@ -1595,7 +1605,7 @@ function ApplicationsWorkspace({
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1000px] border-separate border-spacing-y-2 text-left">
               <thead>
-                <tr className="text-xs font-medium text-[#8f8f8f]">
+                <tr className="text-xs font-medium text-ink-4">
                   <th className="w-12 px-3 py-1">#</th>
                   <th className="px-3 py-1">Team</th>
                   <th className="px-3 py-1">Applicant names</th>
@@ -1612,22 +1622,22 @@ function ApplicationsWorkspace({
                     key={application.id}
                     data-application-row="true"
                     data-application-team={application.teamName}
-                    className="text-sm font-medium text-[#f4f4f4]"
+                    className="text-sm font-medium text-ink"
                   >
-                    <td className="rounded-l-[20px] bg-[#212121] px-3 py-3 text-xs font-semibold text-[#9b9b9b]">
+                    <td className="rounded-l-[20px] bg-p-card px-3 py-3 text-xs font-semibold text-ink-3">
                       {formatRowNumber(index + 1)}
                     </td>
-                    <td className="max-w-[180px] bg-[#212121] px-3 py-3">
+                    <td className="max-w-[180px] bg-p-card px-3 py-3">
                       <span className="block truncate">
                         {application.teamName}
                       </span>
                     </td>
-                    <td className="max-w-[220px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                    <td className="max-w-[220px] bg-p-card px-3 py-3 text-ink-2">
                       <span className="block truncate">
                         {application.participantsFullName}
                       </span>
                     </td>
-                    <td className="max-w-[240px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                    <td className="max-w-[240px] bg-p-card px-3 py-3 text-ink-2">
                       {application.participantEmails.length > 0 ? (
                         <div className="space-y-0.5">
                           {application.participantEmails.map((email) => (
@@ -1641,36 +1651,36 @@ function ApplicationsWorkspace({
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs text-[#8f8f8f]">—</span>
+                        <span className="text-xs text-ink-4">—</span>
                       )}
                     </td>
-                    <td className="bg-[#212121] px-3 py-3">
+                    <td className="bg-p-card px-3 py-3">
                       <a
                         href={application.githubRepoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[#d6d6d6] transition hover:text-white"
+                        className="inline-flex items-center gap-1 text-ink-2 transition hover:text-white"
                       >
                         Github
                         <ExternalLink className="size-3.5" aria-hidden="true" />
                       </a>
                     </td>
-                    <td className="max-w-[220px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                    <td className="max-w-[220px] bg-p-card px-3 py-3 text-ink-2">
                       <span className="block truncate">
                         {application.builtDescription}
                       </span>
                     </td>
-                    <td className="bg-[#212121] px-3 py-3 text-xs text-[#9b9b9b]">
+                    <td className="bg-p-card px-3 py-3 text-xs text-ink-3">
                       {formatDateTime(application.createdAt)}
                     </td>
-                    <td className="rounded-r-[20px] bg-[#212121] px-2 py-2">
+                    <td className="rounded-r-[20px] bg-p-card px-2 py-2">
                       <button
                         type="button"
                         title="Delete application"
                         aria-label="Delete application"
                         disabled={pending}
                         onClick={() => onDelete(application.id)}
-                        className="grid size-9 place-items-center rounded-[18px] text-[#8f8f8f] transition hover:bg-[#333] hover:text-white disabled:opacity-50"
+                        className="grid size-9 place-items-center rounded-[18px] text-ink-4 transition hover:bg-surface-3 hover:text-white disabled:opacity-50"
                       >
                         <Trash2 className="size-4" aria-hidden="true" />
                       </button>
@@ -1681,7 +1691,7 @@ function ApplicationsWorkspace({
             </table>
           </div>
         ) : (
-          <div className="rounded-[20px] bg-[#212121] px-4 py-8 text-center text-sm font-medium text-[#9b9b9b]">
+          <div className="rounded-[20px] bg-p-card px-4 py-8 text-center text-sm font-medium text-ink-3">
             No applications yet. Share the link above.
           </div>
         )}
@@ -1774,14 +1784,14 @@ function JudgesWorkspace({
           <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white">
             Judges
           </h2>
-          <p className="mt-1 text-sm font-medium text-[#8f8f8f]">
+          <p className="mt-1 text-sm font-medium text-ink-4">
             Groups of two, four criteria, one shared application table.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span
             data-judge-count="true"
-            className="rounded-[20px] bg-[#212121] px-3 py-1.5 text-sm font-medium text-[#d6d6d6]"
+            className="rounded-[20px] bg-p-card px-3 py-1.5 text-sm font-medium text-ink-2"
           >
             {formatJudgeCount(judges.length)}
           </span>
@@ -1789,7 +1799,7 @@ function JudgesWorkspace({
             type="button"
             disabled={pending || judges.length === 0}
             onClick={onAutoGroups}
-            className="inline-flex h-9 items-center gap-2 rounded-[20px] bg-[#f4f4f4] px-3 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:bg-[#3a3a3a] disabled:text-[#8f8f8f]"
+            className="inline-flex h-9 items-center gap-2 rounded-[20px] brand-btn px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
           >
             <Shuffle className="size-4" aria-hidden="true" />
             Auto groups
@@ -1797,7 +1807,7 @@ function JudgesWorkspace({
         </div>
       </div>
 
-      <section className="rounded-[20px] bg-[#2f2f2f] p-3">
+      <section className="rounded-[20px] bg-edge p-3">
         <div className="space-y-2">
           {judges.map((judge, index) => {
             const isOptimisticJudge = isOptimisticJudgeId(judge.id);
@@ -1810,9 +1820,9 @@ function JudgesWorkspace({
                 data-judge-index={index + 1}
                 data-judge-optimistic={isOptimisticJudge ? "true" : undefined}
                 action={(formData) => onUpdate(judge.id, formData)}
-                className="grid gap-2 rounded-[20px] bg-[#212121] p-2.5 md:grid-cols-[40px_minmax(0,1fr)_minmax(0,1fr)_150px_auto]"
+                className="grid gap-2 rounded-[20px] bg-p-card p-2.5 md:grid-cols-[40px_minmax(0,1fr)_minmax(0,1fr)_150px_auto]"
               >
-                <span className="flex h-10 items-center justify-center rounded-[20px] bg-[#303030] text-xs font-semibold text-[#9b9b9b]">
+                <span className="flex h-10 items-center justify-center rounded-[20px] bg-edge text-xs font-semibold text-ink-3">
                   {formatRowNumber(index + 1)}
                 </span>
                 <input
@@ -1829,7 +1839,7 @@ function JudgesWorkspace({
                       submitJudgeUpdate(judge.id, event.currentTarget.form);
                     }
                   }}
-                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
                 />
                 <input
                   name="email"
@@ -1847,7 +1857,7 @@ function JudgesWorkspace({
                       submitJudgeUpdate(judge.id, event.currentTarget.form);
                     }
                   }}
-                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
                 />
                 <input
                   key={`${judge.id}-${judge.groupId ?? "none"}-group`}
@@ -1871,7 +1881,7 @@ function JudgesWorkspace({
                       submitJudgeUpdate(judge.id, event.currentTarget.form);
                     }
                   }}
-                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-[#171717] px-3 text-sm font-semibold text-[#d6d6d6] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444]"
+                  className="h-10 min-w-0 rounded-[20px] border border-transparent bg-surface px-3 text-sm font-semibold text-ink-2 outline-none transition placeholder:text-ink-4 focus:border-accent"
                 />
                 <button
                   type="button"
@@ -1879,7 +1889,7 @@ function JudgesWorkspace({
                   aria-label="Delete judge"
                   disabled={pending || isOptimisticJudge}
                   onClick={() => onDelete(judge.id)}
-                  className="grid size-10 place-items-center rounded-[20px] text-[#8f8f8f] transition hover:bg-[#333] hover:text-white disabled:opacity-50"
+                  className="grid size-10 place-items-center rounded-[20px] text-ink-4 transition hover:bg-surface-3 hover:text-white disabled:opacity-50"
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
                 </button>
@@ -1891,9 +1901,9 @@ function JudgesWorkspace({
         <form
           key={judges.length}
           action={onCreate}
-          className="mt-2 grid gap-2 rounded-[20px] bg-[#212121] p-2.5 md:grid-cols-[40px_minmax(0,1fr)_minmax(0,1fr)_150px_auto]"
+          className="mt-2 grid gap-2 rounded-[20px] bg-p-card p-2.5 md:grid-cols-[40px_minmax(0,1fr)_minmax(0,1fr)_150px_auto]"
         >
-          <span className="flex h-10 items-center justify-center rounded-[20px] bg-[#303030] text-xs font-semibold text-[#9b9b9b]">
+          <span className="flex h-10 items-center justify-center rounded-[20px] bg-edge text-xs font-semibold text-ink-3">
             {formatRowNumber(judges.length + 1)}
           </span>
           <input
@@ -1906,7 +1916,7 @@ function JudgesWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
           />
           <input
             name="email"
@@ -1919,7 +1929,7 @@ function JudgesWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-[#f4f4f4] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444] focus:bg-[#171717]"
+            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-transparent px-2 text-sm font-medium text-ink outline-none transition placeholder:text-ink-4 focus:border-accent focus:bg-surface"
           />
           <input
             name="groupNumber"
@@ -1936,7 +1946,7 @@ function JudgesWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-[#171717] px-3 text-sm font-semibold text-[#d6d6d6] outline-none transition placeholder:text-[#8f8f8f] focus:border-[#444]"
+            className="h-10 min-w-0 rounded-[20px] border border-transparent bg-surface px-3 text-sm font-semibold text-ink-2 outline-none transition placeholder:text-ink-4 focus:border-accent"
           />
           <button
             type="submit"
@@ -1949,7 +1959,7 @@ function JudgesWorkspace({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            className="grid size-10 place-items-center rounded-[20px] bg-[#f4f4f4] text-black transition hover:bg-white disabled:opacity-50"
+            className="grid size-10 place-items-center rounded-[20px] brand-btn transition disabled:opacity-50"
           >
             <Check className="size-4" aria-hidden="true" />
           </button>
@@ -1957,12 +1967,12 @@ function JudgesWorkspace({
       </section>
 
       <section className="grid gap-3 md:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="rounded-[20px] bg-[#2f2f2f] p-3">
+        <div className="rounded-[20px] bg-edge p-3">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
               Groups
             </h3>
-            <span className="rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+            <span className="rounded-[20px] bg-p-card px-2.5 py-1 text-xs font-semibold text-ink-3">
               {groups.length}
             </span>
           </div>
@@ -2003,13 +2013,13 @@ function JudgesWorkspace({
                   }}
                   className={`rounded-[20px] p-3 transition ${
                     dropTargetGroupId === group.id
-                      ? "bg-[#303030] shadow-[inset_0_0_0_1px_rgba(244,244,244,0.16)]"
-                      : "bg-[#212121]"
+                      ? "bg-edge shadow-[inset_0_0_0_1px_rgba(244,244,244,0.16)]"
+                      : "bg-p-card"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-white">{group.name}</p>
-                    <span className="rounded-full bg-[#303030] px-2 py-1 text-xs font-semibold text-[#d6d6d6]">
+                    <span className="rounded-full bg-edge px-2 py-1 text-xs font-semibold text-ink-2">
                       {group.applicationCount} apps
                     </span>
                   </div>
@@ -2072,14 +2082,14 @@ function JudgesWorkspace({
                             }}
                             className={`flex h-9 w-full cursor-grab items-center gap-2 rounded-[18px] px-2 text-left text-sm font-medium transition active:cursor-grabbing ${
                               draggedJudgeId === judge.id
-                                ? "bg-[#303030] text-white opacity-70"
+                                ? "bg-edge text-white opacity-70"
                                 : dropTargetJudgeId === judge.id
-                                  ? "bg-[#303030] text-white shadow-[inset_0_1px_0_0_rgba(244,244,244,0.22)]"
-                                  : "text-[#b4b4b4] hover:bg-[#303030] hover:text-white"
+                                  ? "bg-edge text-white shadow-[inset_0_1px_0_0_rgba(244,244,244,0.22)]"
+                                  : "text-ink-3 hover:bg-edge hover:text-white"
                             }`}
                         >
                           <GripVertical
-                            className="size-4 shrink-0 text-[#6f6f6f]"
+                            className="size-4 shrink-0 text-ink-4"
                             aria-hidden="true"
                           />
                           <span className="min-w-0 flex-1 truncate">
@@ -2089,7 +2099,7 @@ function JudgesWorkspace({
                         );
                       })
                     ) : (
-                      <p className="text-sm font-medium text-[#6f6f6f]">
+                      <p className="text-sm font-medium text-ink-4">
                         Drop judges here
                       </p>
                     )}
@@ -2097,19 +2107,19 @@ function JudgesWorkspace({
                 </div>
               ))
             ) : (
-              <div className="rounded-[20px] bg-[#212121] px-4 py-8 text-center text-sm font-medium text-[#9b9b9b]">
+              <div className="rounded-[20px] bg-p-card px-4 py-8 text-center text-sm font-medium text-ink-3">
                 Add a judge. Groups are assigned automatically.
               </div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-[#2f2f2f] p-3">
+        <div className="rounded-[20px] bg-edge p-3">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
               Ranking
             </h3>
-            <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+            <span className="inline-flex items-center gap-2 rounded-[20px] bg-p-card px-2.5 py-1 text-xs font-semibold text-ink-3">
               <Trophy className="size-3.5" aria-hidden="true" />
               {judgingApplications.length}
             </span>
@@ -2118,7 +2128,7 @@ function JudgesWorkspace({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-separate border-spacing-y-2 text-left">
                 <thead>
-                  <tr className="text-xs font-medium text-[#8f8f8f]">
+                  <tr className="text-xs font-medium text-ink-4">
                     <th className="w-12 px-3 py-1">#</th>
                     <th className="px-3 py-1">Startup</th>
                     <th className="px-3 py-1">Group</th>
@@ -2134,35 +2144,35 @@ function JudgesWorkspace({
                   {judgingApplications.map((application, index) => (
                     <tr
                       key={application.id}
-                      className="text-sm font-medium text-[#f4f4f4]"
+                      className="text-sm font-medium text-ink"
                     >
-                      <td className="rounded-l-[20px] bg-[#212121] px-3 py-3 text-xs font-semibold text-[#9b9b9b]">
+                      <td className="rounded-l-[20px] bg-p-card px-3 py-3 text-xs font-semibold text-ink-3">
                         {formatRowNumber(index + 1)}
                       </td>
-                      <td className="max-w-[180px] bg-[#212121] px-3 py-3">
+                      <td className="max-w-[180px] bg-p-card px-3 py-3">
                         <span className="block truncate">
                           {application.teamName}
                         </span>
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="bg-p-card px-3 py-3 text-ink-2">
                         {application.groupName ?? "Unassigned"}
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="bg-p-card px-3 py-3 text-ink-2">
                         {application.scoreCount}
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-white">
+                      <td className="bg-p-card px-3 py-3 text-white">
                         {formatScore(application.averageScore)}
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="bg-p-card px-3 py-3 text-ink-2">
                         {formatScore(application.pitchAverage)}
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="bg-p-card px-3 py-3 text-ink-2">
                         {formatScore(application.potentialAverage)}
                       </td>
-                      <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="bg-p-card px-3 py-3 text-ink-2">
                         {formatScore(application.uiUxAverage)}
                       </td>
-                      <td className="rounded-r-[20px] bg-[#212121] px-3 py-3 text-[#d6d6d6]">
+                      <td className="rounded-r-[20px] bg-p-card px-3 py-3 text-ink-2">
                         {formatScore(application.executionAverage)}
                       </td>
                     </tr>
@@ -2171,7 +2181,7 @@ function JudgesWorkspace({
               </table>
             </div>
           ) : (
-            <div className="rounded-[20px] bg-[#212121] px-4 py-8 text-center text-sm font-medium text-[#9b9b9b]">
+            <div className="rounded-[20px] bg-p-card px-4 py-8 text-center text-sm font-medium text-ink-3">
               Applications will appear here when teams submit.
             </div>
           )}
@@ -2202,16 +2212,23 @@ function NavButton({
       title={label}
       aria-label={label}
       onClick={onClick}
-      className={`flex h-10 items-center gap-3 rounded-lg text-left text-sm font-medium transition ${
+      className={`flex h-10 items-center gap-3 rounded-xl border text-left text-sm font-medium transition ${
         active
-          ? "bg-[#212121] text-white"
-          : "text-[#ececec] hover:bg-[#1f1f1f]"
-      } ${collapsed ? "w-10 justify-center px-0" : "w-full px-2"}`}
+          ? "border-accent-line bg-accent-soft text-ink shadow-[inset_2px_0_0_0_var(--accent)]"
+          : "border-transparent text-ink-2 hover:border-edge hover:bg-surface-3"
+      } ${collapsed ? "w-10 justify-center px-0" : "w-full px-2.5"}`}
     >
-      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <Icon
+        className={`size-4 shrink-0 transition ${active ? "text-accent" : "text-ink-4"}`}
+        aria-hidden="true"
+      />
       {collapsed ? null : <span className="min-w-0 flex-1 truncate">{label}</span>}
       {!collapsed && typeof count === "number" ? (
-        <span className="grid min-w-6 place-items-center rounded-full bg-[#f4f4f4] px-2 py-0.5 text-xs font-semibold text-black">
+        <span
+          className={`grid min-w-6 place-items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+            active ? "bg-accent-soft text-accent" : "bg-surface-3 text-ink-3"
+          }`}
+        >
           {count}
         </span>
       ) : null}
@@ -2236,26 +2253,39 @@ function BalanceCard({
   onOpenBudget: () => void;
   isProfit: boolean;
 }) {
+
   return (
     <button
       type="button"
       onClick={onOpenBudget}
-      className={`${className} rounded-2xl bg-[#171717] p-4 text-left text-white transition hover:bg-[#1f1f1f]`}
+      className={`${className} brand-card rounded-2xl border border-edge bg-surface p-4 text-left text-ink transition hover:bg-surface-3`}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="grid size-9 place-items-center rounded-xl bg-[#2f2f2f] text-[#ececec]">
+        <span
+          className={`grid size-9 place-items-center rounded-xl ${
+            isProfit ? "bg-ok-soft text-ok" : "bg-bad-soft text-bad"
+          }`}
+        >
           <Banknote className="size-4" aria-hidden="true" />
         </span>
-        <span className="rounded-full bg-[#f4f4f4] px-2.5 py-1 text-xs font-semibold text-black">
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isProfit ? "bg-ok-soft text-ok" : "bg-bad-soft text-bad"
+          }`}
+        >
           {isProfit ? "profit" : "loss"}
         </span>
       </div>
-      <p className="mt-5 text-sm font-medium text-[#b4b4b4]">Net balance</p>
-      <p className="mt-1 text-3xl font-semibold tracking-[-0.05em]">
+      <p className="mt-5 text-sm font-medium text-ink-3">Net balance</p>
+      <p
+        className={`mt-1 text-3xl font-semibold tracking-[-0.05em] ${
+          isProfit ? "text-ok" : "text-bad"
+        }`}
+      >
         {isProfit ? "+" : "-"}
         {formatCurrency(Math.abs(netCents))}
       </p>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-xs font-medium text-[#9b9b9b]">
+      <div className="mt-4 grid grid-cols-3 gap-2 text-xs font-medium text-ink-3">
         <span>{completionRate}% done</span>
         <span>In {formatCurrency(incomeCents)}</span>
         <span>Out {formatCurrency(expenseCents)}</span>
@@ -2264,10 +2294,28 @@ function BalanceCard({
   );
 }
 
-function Metric({ label, value }: { label: string; value: number | string }) {
+const METRIC_TONES = {
+  neutral: "border-edge bg-surface text-ink",
+  ok: "border-ok-line bg-ok-soft text-ok",
+  bad: "border-bad-line bg-bad-soft text-bad",
+} as const;
+
+function Metric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number | string;
+  tone?: keyof typeof METRIC_TONES;
+}) {
+  const [border, background, ink] = METRIC_TONES[tone].split(" ");
+
   return (
-    <div className="hidden rounded-full border border-[#303030] px-3 py-1.5 text-xs font-medium text-[#b4b4b4] lg:block">
-      <span className="text-[#ececec]">{value}</span> {label}
+    <div
+      className={`hidden rounded-full border px-3 py-1.5 text-xs font-medium text-ink-3 lg:block ${border} ${background}`}
+    >
+      <span className={`font-semibold ${ink}`}>{value}</span> {label}
     </div>
   );
 }
