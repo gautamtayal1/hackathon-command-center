@@ -1,4 +1,4 @@
-import type { DrakiUser } from "@/lib/auth";
+import type { EightXUser } from "@/lib/auth";
 
 export const DEV_BYPASS_COOKIE = "draki_dev_bypass";
 
@@ -16,7 +16,7 @@ export function isDevBypassEnabled(): boolean {
  * present. Uses a fixed id/email so the same workspace + profile are reused
  * across dev sessions.
  */
-export const DEV_USER: DrakiUser = {
+export const DEV_USER: EightXUser = {
   id: "00000000-0000-4000-8000-000000000001",
   email: "dev@draki.local",
   name: "Dev Admin",

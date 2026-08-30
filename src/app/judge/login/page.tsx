@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { JudgeLoginForm } from "@/app/login/login-form";
+import { Wordmark } from "@/components/brand/wordmark";
 
 type JudgeLoginPageProps = {
   searchParams: Promise<{
@@ -32,8 +33,8 @@ export default async function JudgeLoginPage({
           Login
         </Link>
         <div className="mb-8">
-          <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
+          <Wordmark size="md" label="Judges" />
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-white">
             Judge login
           </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-[#9b9b9b]">

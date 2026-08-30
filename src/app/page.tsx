@@ -22,6 +22,7 @@ import {
   updateTask,
 } from "@/lib/actions";
 import { getDashboardData } from "@/lib/tasks";
+import { Wordmark } from "@/components/brand/wordmark";
 
 export const dynamic = "force-dynamic";
 
@@ -100,8 +101,8 @@ function AdminAccessDenied() {
   return (
     <main className="grid min-h-screen place-items-center bg-black px-4 text-[#f4f4f4]">
       <section className="w-full max-w-[440px] rounded-[20px] border border-[#303030] bg-[#212121] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-        <p className="text-sm font-semibold text-[#9b9b9b]">Draki</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">
+        <Wordmark size="sm" />
+        <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white">
           No admin access
         </h1>
         <p className="mt-3 text-sm font-medium leading-6 text-[#b4b4b4]">

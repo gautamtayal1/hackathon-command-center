@@ -3,6 +3,7 @@ import { AutoRefresh } from "@/app/display/auto-refresh";
 import { AccessDeniedError, getAdminContext } from "@/lib/auth";
 import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
 import { prisma } from "@/lib/prisma";
+import { Wordmark } from "@/components/brand/wordmark";
 
 export const dynamic = "force-dynamic";
 
@@ -61,10 +62,8 @@ export default async function DisplayPage() {
       <AutoRefresh />
       <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#9b9b9b]">
-            Draki
-          </p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+          <Wordmark size="sm" />
+          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
             {hackathon.name}
           </h1>
           <p className="mt-2 text-lg font-medium text-[#9b9b9b]">

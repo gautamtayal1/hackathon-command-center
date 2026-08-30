@@ -202,7 +202,7 @@ async function assertPublicGithubRepo(githubRepoUrl: string) {
       signal: AbortSignal.timeout(5000),
       headers: {
         "user-agent":
-          "Mozilla/5.0 (compatible; DrakiApplications/1.0; +https://localhost)",
+          "Mozilla/5.0 (compatible; 8xApplications/1.0; +https://localhost)",
       },
     });
 
@@ -879,7 +879,7 @@ export async function requestJudgeMagicLink(
 
     return {
       status: "success",
-      message: "Check your email. Draki sent the judge link.",
+      message: "Check your email. 8x sent the judge link.",
     };
   } catch (error) {
     return {

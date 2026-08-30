@@ -4,6 +4,7 @@ import { CalendarDays, ArrowRight } from "lucide-react";
 import { requireUser, upsertUserProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/logout-button";
+import { Wordmark } from "@/components/brand/wordmark";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function JudgeHomePage() {
       <section className="mx-auto w-full max-w-[760px]">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
+            <Wordmark size="md" label="Judges" />
             <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
               Your hackathons
             </h1>

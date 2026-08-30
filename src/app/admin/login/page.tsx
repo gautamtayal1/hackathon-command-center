@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { AdminLoginForm } from "@/app/admin/login/admin-login-form";
+import { Wordmark } from "@/components/brand/wordmark";
 
 type AdminLoginPageProps = {
   searchParams: Promise<{
@@ -32,8 +33,8 @@ export default async function AdminLoginPage({
           Login
         </Link>
         <div className="mb-8">
-          <p className="text-sm font-semibold text-[#9b9b9b]">Draki Admin</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
+          <Wordmark size="md" label="Admin" />
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-white">
             Admin login
           </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-[#9b9b9b]">

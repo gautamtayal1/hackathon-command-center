@@ -56,6 +56,7 @@ import {
 } from "@/lib/board";
 import { TaskCard } from "@/components/board/task-card";
 import { logout } from "@/lib/auth-actions";
+import { BrandMark, Wordmark } from "@/components/brand/wordmark";
 
 type BoardActions = {
   autoGenerateJudgeGroups: () => Promise<void>;
@@ -846,11 +847,17 @@ function Sidebar({
         collapsed ? "items-center" : ""
       }`}
     >
-      <div className="mb-6 flex items-center justify-between px-1">
-        {collapsed ? null : (
-          <h1 className="text-xl font-semibold tracking-[-0.03em] text-white">
-            Draki
-          </h1>
+      <div
+        className={`mb-6 flex px-1 ${
+          collapsed
+            ? "flex-col items-center gap-3"
+            : "items-center justify-between"
+        }`}
+      >
+        {collapsed ? (
+          <BrandMark size="sm" />
+        ) : (
+          <Wordmark size="sm" />
         )}
         <button
           type="button"
@@ -2168,7 +2175,7 @@ function JudgesWorkspace({
                   onDrop={(event) => {
                     event.preventDefault();
                     const judgeId =
-                      event.dataTransfer.getData("application/x-draki-judge") ||
+                      event.dataTransfer.getData("application/x-8x-judge") ||
                       event.dataTransfer.getData("text/plain") ||
                       draggedJudgeId ||
                       "";
@@ -2222,7 +2229,7 @@ function JudgesWorkspace({
                               event.stopPropagation();
                               const judgeId =
                                 event.dataTransfer.getData(
-                                  "application/x-draki-judge",
+                                  "application/x-8x-judge",
                                 ) ||
                                 event.dataTransfer.getData("text/plain") ||
                                 draggedJudgeId ||
@@ -2233,7 +2240,7 @@ function JudgesWorkspace({
                             onDragStart={(event) => {
                               event.dataTransfer.effectAllowed = "move";
                               event.dataTransfer.setData(
-                                "application/x-draki-judge",
+                                "application/x-8x-judge",
                                 judge.id,
                               );
                               event.dataTransfer.setData("text/plain", judge.id);
