@@ -19,3 +19,4 @@ src/generated/prisma
 .seed-judge-invites.mjs
 .claude-logs/
 .tmp-*.mjs
+.env*

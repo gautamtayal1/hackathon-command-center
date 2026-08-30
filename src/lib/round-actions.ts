@@ -5,6 +5,7 @@ import { lookupJudgeForHackathon } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   isRoundNumber,
+  MAX_CRITERION_SCORE,
   ROUND_ONE,
   ROUND_TWO,
   type ActionErrorCode,
@@ -28,8 +29,10 @@ class ScoreInputError extends Error {}
 function cleanScoreValue(value: FormDataEntryValue | null, label: string) {
   const score = Number(String(value ?? "").trim());
 
-  if (!Number.isInteger(score) || score < 1 || score > 10) {
-    throw new ScoreInputError(`${label} must be a whole number from 1 to 10.`);
+  if (!Number.isInteger(score) || score < 1 || score > MAX_CRITERION_SCORE) {
+    throw new ScoreInputError(
+      `${label} must be a whole number from 1 to ${MAX_CRITERION_SCORE}.`,
+    );
   }
 
   return score;

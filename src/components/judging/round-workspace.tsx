@@ -15,6 +15,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import {
+  MAX_CRITERION_SCORE,
   SCORE_CRITERIA,
   type ActionResult,
   type RoundTeam,
@@ -39,6 +40,7 @@ type CardSummary = {
   dirty: boolean;
   saving: boolean;
   scored: boolean;
+  invalid: boolean;
   errorCode: string | null;
 };
 
@@ -49,12 +51,36 @@ function retryDelay(attempt: number) {
   return Math.min(2000 * 2 ** (attempt - 1), 30000);
 }
 
+/** Empty is merely incomplete; a number outside 1-10 is an actual mistake. */
+function isValidScoreValue(raw: string) {
+  const trimmed = (raw ?? "").trim();
+
+  if (trimmed === "") {
+    return true;
+  }
+
+  const value = Number(trimmed);
+
+  return Number.isInteger(value) && value >= 1 && value <= MAX_CRITERION_SCORE;
+}
+
+function invalidCriteria(values: DraftValues) {
+  return SCORE_CRITERIA.filter(
+    (criterion) => !isValidScoreValue(values[criterion.name]),
+  ).map((criterion) => criterion.name as string);
+}
+
 function isCompleteScore(values: DraftValues) {
   return SCORE_CRITERIA.every((criterion) => {
     const raw = (values[criterion.name] ?? "").trim();
     const value = Number(raw);
 
-    return raw !== "" && Number.isInteger(value) && value >= 1 && value <= 10;
+    return (
+      raw !== "" &&
+      Number.isInteger(value) &&
+      value >= 1 &&
+      value <= MAX_CRITERION_SCORE
+    );
   });
 }
 
@@ -100,6 +126,7 @@ export function RoundWorkspace({
         current.dirty === summary.dirty &&
         current.saving === summary.saving &&
         current.scored === summary.scored &&
+        current.invalid === summary.invalid &&
         current.errorCode === summary.errorCode
       ) {
         return previous;
@@ -117,6 +144,7 @@ export function RoundWorkspace({
     return card ? card.scored : (team.score?.score ?? 0) > 0;
   }).length;
   const sessionLost = summaries.some((card) => card.errorCode === "session");
+  const outOfRange = summaries.some((card) => card.invalid);
 
   useEffect(() => {
     clearStaleDraftFiles(storageKey);
@@ -266,16 +294,19 @@ export function RoundWorkspace({
                 Finish round {round}
               </p>
               <p className="mt-1 text-sm font-medium text-ink-3">
-                {scoredCount} of {teams.length} teams scored.
-                {round === 1
-                  ? " Submitting sends your top team to the finals."
-                  : " Submitting publishes your marks on the final scores screen."}
+                {outOfRange
+                  ? `Every criterion is scored out of ${MAX_CRITERION_SCORE}. Fix the highlighted scores to submit.`
+                  : `${scoredCount} of ${teams.length} teams scored.${
+                      round === 1
+                        ? " Submitting sends your top team to the finals."
+                        : " Submitting publishes your marks on the final scores screen."
+                    }`}
               </p>
             </div>
             <button
               type="button"
               onClick={handleSubmitRound}
-              disabled={submitting}
+              disabled={submitting || outOfRange}
               className="h-11 shrink-0 rounded-[20px] brand-btn px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-edge-strong disabled:text-ink-4"
             >
               {submitting ? "Submitting" : `Submit round ${round}`}
@@ -328,6 +359,7 @@ function TeamScoreCard({
 
   const dirty = !sameValues(values, syncedValues);
   const complete = isCompleteScore(values);
+  const badFields = invalidCriteria(values);
   const scored = complete || (team.score?.score ?? 0) > 0;
 
   /**
@@ -467,9 +499,10 @@ function TeamScoreCard({
       dirty,
       saving,
       scored,
+      invalid: badFields.length > 0,
       errorCode: failure?.code ?? null,
     });
-  }, [onReport, team.id, dirty, saving, scored, failure]);
+  }, [onReport, team.id, dirty, saving, scored, badFields.length, failure]);
 
   const total = totalOf(values);
 
@@ -502,6 +535,7 @@ function TeamScoreCard({
             name={criterion.name}
             label={criterion.label}
             value={values[criterion.name]}
+            invalid={badFields.includes(criterion.name)}
             onChange={(value) => update({ [criterion.name]: value })}
           />
         ))}
@@ -593,26 +627,43 @@ function ScoreInput({
   name,
   label,
   value,
+  invalid,
   onChange,
 }: {
   name: string;
   label: string;
   value: string;
+  invalid: boolean;
   onChange: (value: string) => void;
 }) {
   return (
     <label className="block rounded-[20px] bg-background p-3">
-      <span className="block text-xs font-semibold text-ink-4">{label}</span>
+      <span className="flex items-baseline justify-between gap-2">
+        <span className="text-xs font-semibold text-ink-4">{label}</span>
+        <span className="text-xs font-semibold text-ink-4/70">
+          / {MAX_CRITERION_SCORE}
+        </span>
+      </span>
       <input
         name={name}
         type="number"
         inputMode="numeric"
         min={1}
-        max={10}
+        max={MAX_CRITERION_SCORE}
         value={value}
+        aria-invalid={invalid}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 w-full rounded-[18px] border border-edge bg-surface px-3 text-base font-semibold text-white outline-none transition focus:border-edge-strong"
+        className={`mt-2 h-10 w-full rounded-[18px] border bg-surface px-3 text-base font-semibold text-white outline-none transition ${
+          invalid
+            ? "border-[#6d2142] focus:border-[#a5335c]"
+            : "border-edge focus:border-edge-strong"
+        }`}
       />
+      {invalid ? (
+        <span className="mt-1.5 block text-xs font-semibold text-[#ffd1df]">
+          1 to {MAX_CRITERION_SCORE} only
+        </span>
+      ) : null}
     </label>
   );
 }
