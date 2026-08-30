@@ -25,6 +25,7 @@ import {
 } from "@/lib/hackathons";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getJudgesForApplication } from "@/lib/screens";
 import { ensureApplicationAssignments, getActiveHackathon } from "@/lib/tasks";
 import {
   ensureGroupJudgingRound,
@@ -751,6 +752,8 @@ export async function deleteJudge(id: string) {
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
   message: string;
+  /** Judges the team will pitch to, shown on the confirmation screen. */
+  judgeNames?: string[];
 };
 
 export async function submitApplication(
@@ -780,18 +783,23 @@ export async function submitApplication(
       builtDescription: String(formData.get("builtDescription") ?? ""),
     });
 
-    await prisma.application.create({
+    const application = await prisma.application.create({
       data: {
         ...data,
         hackathonId: hackathon.id,
       },
     });
 
+    // Assign straight away so the team leaves the form knowing who judges them.
+    await ensureApplicationAssignments(hackathon.id);
+    const { judgeNames } = await getJudgesForApplication(application.id);
+
     revalidatePath("/");
     revalidatePath("/preview");
+    revalidatePath("/roster");
     revalidatePath(`/apply/${hackathon.id}`);
 
-    return { status: "success", message: "OK" };
+    return { status: "success", message: "OK", judgeNames };
   } catch (error) {
     return {
       status: "error",
