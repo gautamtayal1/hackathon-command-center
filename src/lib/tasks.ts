@@ -22,6 +22,10 @@ import {
   type Judge,
 } from "@/lib/board";
 import { prisma } from "@/lib/prisma";
+import {
+  ensureGroupJudgingRound,
+  getJudgingRoundState,
+} from "@/lib/judging";
 
 const DEFAULT_HACKATHON_NAME = "Hackathon";
 
@@ -470,9 +474,16 @@ export async function getJudgingApplications(
   workspaceId?: string,
 ): Promise<JudgingApplication[]> {
   const hackathon = await getActiveHackathon(workspaceId);
-  await ensureApplicationAssignments(hackathon.id);
+  return getJudgingApplicationsForHackathon(hackathon.id);
+}
+
+export async function getJudgingApplicationsForHackathon(
+  hackathonId: string,
+): Promise<JudgingApplication[]> {
+  await ensureApplicationAssignments(hackathonId);
+  const groupRound = await ensureGroupJudgingRound(hackathonId);
   const applications = await prisma.application.findMany({
-    where: { hackathonId: hackathon.id },
+    where: { hackathonId },
     include: {
       assignment: {
         include: {
@@ -482,17 +493,21 @@ export async function getJudgingApplications(
         },
       },
       scores: {
+        where: { roundId: groupRound.id },
         include: {
           judge: {
             select: { groupId: true },
           },
         },
       },
+      finalistSelection: {
+        select: { id: true },
+      },
     },
     orderBy: [{ createdAt: "asc" }],
   });
 
-  return applications
+  const rankedApplications = applications
     .map((application) => {
       const assignedGroupId = application.assignment?.group.id ?? null;
       const relevantScores = application.scores.filter(
@@ -526,11 +541,124 @@ export async function getJudgingApplications(
             .map((score) => score.executionScore)
             .filter(Boolean),
         ),
+        isGroupLeader: false,
+        isGroupWinner: Boolean(application.finalistSelection),
+        isTiedForLead: false,
       };
     })
     .toSorted((a, b) => {
       if (b.totalScore !== a.totalScore) {
         return b.totalScore - a.totalScore;
+      }
+
+      return a.createdAt.localeCompare(b.createdAt);
+    });
+
+  const groupLeaders = new Map<
+    string,
+    { totalScore: number; applicationIds: string[] }
+  >();
+
+  for (const application of rankedApplications) {
+    if (!application.groupId || application.scoreCount === 0) {
+      continue;
+    }
+
+    const leader = groupLeaders.get(application.groupId);
+
+    if (!leader) {
+      groupLeaders.set(application.groupId, {
+        totalScore: application.totalScore,
+        applicationIds: [application.id],
+      });
+    } else if (leader.totalScore === application.totalScore) {
+      leader.applicationIds.push(application.id);
+    }
+  }
+
+  return rankedApplications.map((application) => {
+    const leader = application.groupId
+      ? groupLeaders.get(application.groupId)
+      : null;
+    const isGroupLeader = Boolean(
+      leader?.applicationIds.includes(application.id),
+    );
+
+    return {
+      ...application,
+      isGroupLeader,
+      isTiedForLead: isGroupLeader && (leader?.applicationIds.length ?? 0) > 1,
+    };
+  });
+}
+
+export async function getFinalJudgingApplicationsForHackathon(
+  hackathonId: string,
+): Promise<JudgingApplication[]> {
+  const finalRound = await prisma.judgingRound.findUnique({
+    where: { hackathonId_type: { hackathonId, type: "FINAL" } },
+  });
+
+  if (!finalRound) {
+    return [];
+  }
+
+  const applications = await prisma.application.findMany({
+    where: {
+      hackathonId,
+      finalistSelection: { is: { finalRoundId: finalRound.id } },
+    },
+    include: {
+      finalistSelection: {
+        include: { sourceGroup: { select: { id: true, name: true } } },
+      },
+      scores: {
+        where: { roundId: finalRound.id },
+      },
+    },
+    orderBy: [{ createdAt: "asc" }],
+  });
+
+  return applications
+    .map((application) => {
+      const completedScores = application.scores.filter(
+        (score) => scoreTotal(score) > 0,
+      );
+      const totals = completedScores.map(scoreTotal);
+
+      return {
+        ...serializeApplication(application),
+        groupId: application.finalistSelection?.sourceGroup.id ?? null,
+        groupName: application.finalistSelection?.sourceGroup.name ?? null,
+        scoreCount: completedScores.length,
+        averageScore: average(totals),
+        totalScore: totals.reduce((total, value) => total + value, 0),
+        pitchAverage: average(
+          completedScores.map((score) => score.pitchScore).filter(Boolean),
+        ),
+        potentialAverage: average(
+          completedScores.map((score) => score.potentialScore).filter(Boolean),
+        ),
+        uiUxAverage: average(
+          completedScores.map((score) => score.uiUxScore).filter(Boolean),
+        ),
+        executionAverage: average(
+          completedScores.map((score) => score.executionScore).filter(Boolean),
+        ),
+        isGroupLeader: false,
+        isGroupWinner: true,
+        isTiedForLead: false,
+      };
+    })
+    .toSorted((a, b) => {
+      const groupOrder = (a.groupName ?? "").localeCompare(
+        b.groupName ?? "",
+        undefined,
+        { numeric: true },
+      );
+
+      if (groupOrder !== 0) {
+        return groupOrder;
       }
 
       return a.createdAt.localeCompare(b.createdAt);
@@ -549,6 +677,8 @@ export async function getDashboardData(workspaceId?: string) {
     applications,
     judgeGroups,
     judgingApplications,
+    finalJudgingApplications,
+    judgingRoundState,
   ] = await Promise.all([
     getHackathons(workspaceId),
     getBoardTasks(workspaceId),
@@ -557,6 +687,8 @@ export async function getDashboardData(workspaceId?: string) {
     getApplications(workspaceId),
     getJudgeGroups(workspaceId),
     getJudgingApplications(workspaceId),
+    getFinalJudgingApplicationsForHackathon(active.id),
+    getJudgingRoundState(active.id),
   ]);
 
   const activeHackathon =
@@ -571,5 +703,7 @@ export async function getDashboardData(workspaceId?: string) {
     applications,
     judgeGroups,
     judgingApplications,
+    finalJudgingApplications,
+    judgingRoundState,
   };
 }

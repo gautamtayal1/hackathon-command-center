@@ -7,7 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint",
+    "test": "node --test --experimental-strip-types src/lib/*.test.ts",
     "db:setup": "prisma db push",
+    "judges:provision": "node scripts/provision-judge-passwords.mjs",
+    "ranking:seed-demo": "node scripts/seed-ranking-demo.mjs",
+    "judges:assign-seven": "node scripts/configure-seven-judge-groups.mjs",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate"
   },

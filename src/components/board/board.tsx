@@ -2,7 +2,6 @@
 
 import {
   type FormEvent,
-  useEffect,
   useMemo,
   useOptimistic,
   useState,
@@ -48,6 +47,7 @@ import {
   type JudgeGroup,
   type JudgeInput,
   type JudgingApplication,
+  type JudgingRoundState,
   type TaskInput,
 } from "@/lib/board";
 import { TaskCard } from "@/components/board/task-card";
@@ -55,6 +55,7 @@ import { BrandMark, Wordmark } from "@/components/brand/wordmark";
 
 type BoardActions = {
   autoGenerateJudgeGroups: () => Promise<void>;
+  startFinalRound: (hackathonId: string) => Promise<void>;
   moveJudgeToGroup: (
     id: string,
     groupId: string | null,
@@ -85,6 +86,8 @@ type BoardProps = {
   applications: HackathonApplication[];
   judgeGroups: JudgeGroup[];
   judgingApplications: JudgingApplication[];
+  finalJudgingApplications: JudgingApplication[];
+  judgingRoundState: JudgingRoundState;
   actions: BoardActions;
 };
 
@@ -344,6 +347,8 @@ export function Board({
   applications,
   judgeGroups,
   judgingApplications,
+  finalJudgingApplications,
+  judgingRoundState,
   actions,
 }: BoardProps) {
   const router = useRouter();
@@ -391,20 +396,6 @@ export function Board({
       netCents: incomeCents - expenseCents,
     };
   }, [budgetEntries]);
-
-  useEffect(() => {
-    if (activeView !== "applications") {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        router.refresh();
-      }
-    }, 4000);
-
-    return () => window.clearInterval(intervalId);
-  }, [activeView, activeHackathon.id, router]);
 
   function refreshAfterMutation() {
     router.refresh();
@@ -723,7 +714,10 @@ export function Board({
               judges={optimisticJudges}
               groups={hydratedJudgeGroups}
               judgingApplications={judgingApplications}
-              pending={false}
+              finalJudgingApplications={finalJudgingApplications}
+              judgingRoundState={judgingRoundState}
+              rankingUrl={`/ranking/${activeHackathon.id}`}
+              pending={isPending}
               onCreate={createJudge}
               onUpdate={updateJudge}
               onMoveJudgeToGroup={(judgeId, groupId, position) =>
@@ -743,6 +737,12 @@ export function Board({
                 runMutation(
                   () => actions.autoGenerateJudgeGroups(),
                   "Could not generate judge groups.",
+                )
+              }
+              onStartFinals={() =>
+                runMutation(
+                  () => actions.startFinalRound(activeHackathon.id),
+                  "Could not start the final round.",
                 )
               }
               onDelete={(id) =>
@@ -1679,16 +1679,23 @@ function JudgesWorkspace({
   judges,
   groups,
   judgingApplications,
+  finalJudgingApplications,
+  judgingRoundState,
+  rankingUrl,
   pending,
   onCreate,
   onUpdate,
   onMoveJudgeToGroup,
   onAutoGroups,
+  onStartFinals,
   onDelete,
 }: {
   judges: Judge[];
   groups: JudgeGroup[];
   judgingApplications: JudgingApplication[];
+  finalJudgingApplications: JudgingApplication[];
+  judgingRoundState: JudgingRoundState;
+  rankingUrl: string;
   pending: boolean;
   onCreate: (formData: FormData) => void;
   onUpdate: (id: string, formData: FormData) => void;
@@ -1698,6 +1705,7 @@ function JudgesWorkspace({
     position?: number,
   ) => void;
   onAutoGroups: () => void;
+  onStartFinals: () => void;
   onDelete: (id: string) => void;
 }) {
   const [draggedJudgeId, setDraggedJudgeId] = useState<string | null>(null);
@@ -1778,6 +1786,21 @@ function JudgesWorkspace({
           >
             <Shuffle className="size-4" aria-hidden="true" />
             Auto groups
+          </button>
+          <button
+            type="button"
+            disabled={
+              pending ||
+              judgingRoundState.groupRoundStatus === "CLOSED" ||
+              judgingApplications.length === 0
+            }
+            onClick={onStartFinals}
+            className="inline-flex h-9 items-center gap-2 rounded-[20px] bg-[#15b5b0] px-3 text-sm font-semibold text-black transition hover:bg-[#5ee1dc] disabled:cursor-not-allowed disabled:bg-[#304544] disabled:text-[#8f8f8f]"
+          >
+            <Trophy className="size-4" aria-hidden="true" />
+            {judgingRoundState.finalRoundStatus === "OPEN"
+              ? `${finalJudgingApplications.length} finalists`
+              : "Start finals"}
           </button>
         </div>
       </div>
@@ -2090,14 +2113,25 @@ function JudgesWorkspace({
         </div>
 
         <div className="rounded-[20px] bg-[#2f2f2f] p-3">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-lg font-semibold tracking-[-0.03em] text-white">
               Ranking
             </h3>
-            <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
-              <Trophy className="size-3.5" aria-hidden="true" />
-              {judgingApplications.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <a
+                href={rankingUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-[20px] bg-[#212121] px-3 py-1 text-xs font-semibold text-[#d6d6d6] transition hover:bg-[#383838] hover:text-white"
+              >
+                Open ranking
+                <ExternalLink className="size-3.5" aria-hidden="true" />
+              </a>
+              <span className="inline-flex items-center gap-2 rounded-[20px] bg-[#212121] px-2.5 py-1 text-xs font-semibold text-[#b4b4b4]">
+                <Trophy className="size-3.5" aria-hidden="true" />
+                {judgingApplications.length}
+              </span>
+            </div>
           </div>
           {judgingApplications.length ? (
             <div className="overflow-x-auto">
@@ -2125,8 +2159,20 @@ function JudgesWorkspace({
                         {formatRowNumber(index + 1)}
                       </td>
                       <td className="max-w-[180px] bg-[#212121] px-3 py-3">
-                        <span className="block truncate">
-                          {application.teamName}
+                        <span className="flex items-center gap-2">
+                          <span className="block min-w-0 truncate">
+                            {application.teamName}
+                          </span>
+                          {application.isGroupWinner ||
+                          application.isGroupLeader ? (
+                            <span className="shrink-0 rounded-full bg-[#15b5b0]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#5ee1dc]">
+                              {application.isGroupWinner
+                                ? "Winner"
+                                : application.isTiedForLead
+                                  ? "Tie"
+                                  : "Leader"}
+                            </span>
+                          ) : null}
                         </span>
                       </td>
                       <td className="bg-[#212121] px-3 py-3 text-[#d6d6d6]">

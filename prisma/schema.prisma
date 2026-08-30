@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "esm"
 }
 
@@ -18,6 +18,17 @@ enum JudgeInviteStatus {
   PENDING
   ACCEPTED
   REVOKED
+}
+
+enum JudgingRoundType {
+  GROUP
+  FINAL
+}
+
+enum JudgingRoundStatus {
+  DRAFT
+  OPEN
+  CLOSED
 }
 
 model UserProfile {
@@ -56,15 +67,15 @@ model WorkspaceMember {
 }
 
 model Hackathon {
-  id            String        @id @default(cuid())
+  id            String                  @id @default(cuid())
   workspaceId   String?
-  workspace     Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name          String        @default("Hackathon")
+  workspace     Workspace?              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name          String                  @default("Hackathon")
   lumaUrl       String?
   startsAt      DateTime?
-  isActive      Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  isActive      Boolean                 @default(false)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
   tasks         Task[]
   budgetEntries BudgetEntry[]
   judges        Judge[]
@@ -72,6 +83,8 @@ model Hackathon {
   scores        Score[]
   judgeGroups   JudgeGroup[]
   assignments   ApplicationAssignment[]
+  judgingRounds JudgingRound[]
+  finalists     FinalistSelection[]
 
   @@index([isActive, startsAt])
   @@index([workspaceId, isActive, startsAt])
@@ -102,17 +115,18 @@ model Judge {
 }
 
 model Application {
-  id                   String    @id @default(cuid())
+  id                   String                 @id @default(cuid())
   hackathonId          String
-  hackathon            Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  hackathon            Hackathon              @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   teamName             String
   participantsFullName String
   githubRepoUrl        String
   builtDescription     String
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
   scores               Score[]
   assignment           ApplicationAssignment?
+  finalistSelection    FinalistSelection?
 
   @@index([hackathonId, createdAt])
 }
@@ -127,6 +141,7 @@ model JudgeGroup {
   updatedAt   DateTime                @updatedAt
   judges      Judge[]
   assignments ApplicationAssignment[]
+  finalists   FinalistSelection[]
 
   @@index([hackathonId, sortOrder])
 }
@@ -148,26 +163,63 @@ model ApplicationAssignment {
   @@index([groupId, sortOrder])
 }
 
-model Score {
-  id            String      @id @default(cuid())
-  hackathonId   String
-  hackathon     Hackathon   @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  judgeId       String
-  judge         Judge       @relation(fields: [judgeId], references: [id], onDelete: Cascade)
-  score         Int         @default(0)
-  pitchScore    Int         @default(0)
-  potentialScore Int        @default(0)
-  uiUxScore     Int         @default(0)
-  executionScore Int        @default(0)
-  note          String      @default("")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+model JudgingRound {
+  id          String              @id @default(cuid())
+  hackathonId String
+  hackathon   Hackathon           @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  type        JudgingRoundType
+  status      JudgingRoundStatus  @default(DRAFT)
+  openedAt    DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  scores      Score[]
+  finalists   FinalistSelection[]
 
-  @@unique([applicationId, judgeId])
+  @@unique([hackathonId, type])
+  @@index([hackathonId, status])
+}
+
+model FinalistSelection {
+  id            String       @id @default(cuid())
+  hackathonId   String
+  hackathon     Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  finalRoundId  String
+  finalRound    JudgingRound @relation(fields: [finalRoundId], references: [id], onDelete: Cascade)
+  applicationId String       @unique
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  sourceGroupId String
+  sourceGroup   JudgeGroup   @relation(fields: [sourceGroupId], references: [id], onDelete: Restrict)
+  selectedAt    DateTime     @default(now())
+
+  @@unique([finalRoundId, sourceGroupId])
+  @@index([hackathonId])
+  @@index([sourceGroupId])
+}
+
+model Score {
+  id             String       @id @default(cuid())
+  hackathonId    String
+  hackathon      Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  applicationId  String
+  application    Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  judgeId        String
+  judge          Judge        @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  roundId        String
+  round          JudgingRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  score          Int          @default(0)
+  pitchScore     Int          @default(0)
+  potentialScore Int          @default(0)
+  uiUxScore      Int          @default(0)
+  executionScore Int          @default(0)
+  note           String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([roundId, applicationId, judgeId])
   @@index([hackathonId])
   @@index([judgeId])
+  @@index([roundId])
 }
 
 model Task {

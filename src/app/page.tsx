@@ -13,6 +13,7 @@ import {
   deleteJudge,
   deleteTask,
   moveJudgeToGroup,
+  startFinalRound,
   selectHackathon,
   toggleTaskCompletion,
   updateBudgetEntry,
@@ -53,6 +54,8 @@ export default async function Home() {
     applications,
     judgeGroups,
     judgingApplications,
+    finalJudgingApplications,
+    judgingRoundState,
   } =
     await getDashboardData(adminContext.workspace.id);
 
@@ -68,9 +71,12 @@ export default async function Home() {
         applications={applications}
         judgeGroups={judgeGroups}
         judgingApplications={judgingApplications}
+        finalJudgingApplications={finalJudgingApplications}
+        judgingRoundState={judgingRoundState}
         actions={{
           autoGenerateJudgeGroups,
           moveJudgeToGroup,
+          startFinalRound,
           createHackathonFromLuma,
           selectHackathon,
           createTask,

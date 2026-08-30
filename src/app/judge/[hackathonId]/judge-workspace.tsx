@@ -20,9 +20,13 @@ type JudgeApplication = {
 export function JudgeWorkspace({
   applications,
   scoreAction,
+  roundLabel,
+  roundType,
 }: {
   applications: JudgeApplication[];
   scoreAction: (applicationId: string, formData: FormData) => Promise<void>;
+  roundLabel: string;
+  roundType: "GROUP" | "FINAL";
 }) {
   if (!applications.length) {
     return (
@@ -45,10 +49,11 @@ export function JudgeWorkspace({
           action={scoreAction.bind(null, application.id)}
           className="rounded-[20px] border border-[#303030] bg-[#212121] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]"
         >
+          <input type="hidden" name="roundType" value={roundType} />
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-[#8f8f8f]">
-                Team {index + 1}
+                {roundLabel} · Team {index + 1}
                 {application.groupName ? ` / ${application.groupName}` : ""}
               </p>
               <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-white">

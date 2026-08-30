@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Outfit } from "next/font/google";
+import { RealtimeRefresh } from "@/components/realtime-refresh";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -36,7 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${bodyFont.variable} ${displayFont.variable}`}>
-      <body>{children}</body>
+      <body>
+        <RealtimeRefresh />
+        {children}
+      </body>
     </html>
   );
 }

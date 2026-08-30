@@ -38,8 +38,7 @@ export default async function JudgeLoginPage({
             Judge login
           </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-[#9b9b9b]">
-            Enter the email assigned by the organizer. We will send a magic
-            link.
+            Enter the email assigned by the organizer and your judge password.
           </p>
         </div>
 
