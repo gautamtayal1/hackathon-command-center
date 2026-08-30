@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireJudgeForHackathon } from "@/lib/auth";
 import { upsertJudgeScore } from "@/lib/actions";
+import { Wordmark } from "@/components/brand/wordmark";
 import { prisma } from "@/lib/prisma";
 import { JudgeWorkspace } from "@/app/judge/[hackathonId]/judge-workspace";
 
@@ -56,13 +57,16 @@ export default async function JudgeHackathonPage({
   return (
     <main className="min-h-screen bg-black px-4 py-8 text-[#f4f4f4] sm:px-6">
       <section className="mx-auto w-full max-w-[920px]">
-        <Link
-          href="/judge"
-          className="mb-7 inline-flex items-center gap-2 rounded-[20px] px-2 py-2 text-sm font-semibold text-[#b4b4b4] transition hover:bg-[#1f1f1f] hover:text-white"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Judges
-        </Link>
+        <div className="mb-7 flex items-center justify-between gap-4">
+          <Link
+            href="/judge"
+            className="inline-flex items-center gap-2 rounded-[20px] px-2 py-2 text-sm font-semibold text-[#b4b4b4] transition hover:bg-[#1f1f1f] hover:text-white"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Judges
+          </Link>
+          <Wordmark size="sm" label="Judges" />
+        </div>
 
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
