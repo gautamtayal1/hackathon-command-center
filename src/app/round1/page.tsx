@@ -7,7 +7,7 @@ import { getCurrentHackathon, getRoundOneTeams } from "@/lib/rounds";
 import { RoundWorkspace } from "@/components/judging/round-workspace";
 import { JudgingErrorBoundary } from "@/components/judging/error-boundary";
 import { SessionKeepAlive } from "@/components/judging/session-keep-alive";
-import { BrandLockup } from "@/components/brand/brand-lockup";
+import { BrandMark } from "@/components/brand/brand-lockup";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,9 @@ export default async function RoundOnePage() {
     <main className="brand-bg min-h-screen px-4 py-8 text-ink sm:px-6">
       <section className="mx-auto w-full max-w-[920px]">
         <SessionKeepAlive />
-        <BrandLockup className="mb-7" />
+        <span className="mb-7 block">
+          <BrandMark />
+        </span>
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold tracking-[0.18em] text-accent uppercase">
