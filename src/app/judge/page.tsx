@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, ArrowRight } from "lucide-react";
+import { Wordmark } from "@/components/brand/wordmark";
 import { requireUser, upsertUserProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -22,8 +23,8 @@ export default async function JudgeHomePage() {
     <main className="min-h-screen bg-black px-4 py-10 text-[#f4f4f4] sm:px-6">
       <section className="mx-auto w-full max-w-[760px]">
         <div className="mb-8">
-          <p className="text-sm font-semibold text-[#9b9b9b]">Draki Judges</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-white">
+          <Wordmark size="md" label="Judges" />
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-white">
             Your hackathons
           </h1>
         </div>
