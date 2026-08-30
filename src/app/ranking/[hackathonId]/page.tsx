@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
+import { Wordmark } from "@/components/brand/wordmark";
 import { prisma } from "@/lib/prisma";
 import {
   getFinalJudgingApplicationsForHackathon,
@@ -75,7 +76,8 @@ export default async function HackathonRankingPage({ params }: RankingPageProps)
       <section className="mx-auto w-full max-w-[1180px]">
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#9b9b9b]">
+            <Wordmark size="sm" />
+            <p className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#9b9b9b]">
               <Trophy className="size-4" aria-hidden="true" />
               Live ranking
             </p>

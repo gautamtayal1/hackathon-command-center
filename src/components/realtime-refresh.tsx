@@ -40,7 +40,7 @@ export function RealtimeRefresh() {
     }
 
     const channel = supabase
-      .channel("draki:updates", { config: { private: false } })
+      .channel("8x:updates", { config: { private: false } })
       .on("broadcast", { event: "invalidate" }, () => {
         setEventCount((count) => count + 1);
         scheduleRefresh();

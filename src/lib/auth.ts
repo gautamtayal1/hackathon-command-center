@@ -11,13 +11,13 @@ export class AccessDeniedError extends Error {
   }
 }
 
-export type DrakiUser = {
+export type EightXUser = {
   id: string;
   email: string;
   name: string;
 };
 
-export async function getCurrentUser(): Promise<DrakiUser | null> {
+export async function getCurrentUser(): Promise<EightXUser | null> {
   const supabase = await createSupabaseServerClient();
   const { data: claimsData, error: claimsError } =
     await supabase.auth.getClaims();
@@ -61,7 +61,7 @@ export async function requireUser(next = "/") {
   return user;
 }
 
-export async function upsertUserProfile(user: DrakiUser) {
+export async function upsertUserProfile(user: EightXUser) {
   return prisma.userProfile.upsert({
     where: { id: user.id },
     update: {
@@ -94,7 +94,7 @@ export async function getAdminContext() {
   const memberCount = await prisma.workspaceMember.count();
 
   if (memberCount > 0) {
-    throw new AccessDeniedError("This account is not a Draki admin.");
+    throw new AccessDeniedError("This account is not an 8x admin.");
   }
 
   const existingWorkspace = await prisma.workspace.findFirst({

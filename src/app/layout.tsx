@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Outfit } from "next/font/google";
 import { RealtimeRefresh } from "@/components/realtime-refresh";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 const bodyFont = Manrope({
@@ -17,10 +18,10 @@ const displayFont = Outfit({
 
 export const metadata: Metadata = {
   title: {
-    default: "Draki",
-    template: "%s | Draki",
+    default: BRAND.productName,
+    template: `%s | ${BRAND.name}`,
   },
-  description: "A dark command center for organizing hackathons.",
+  description: BRAND.tagline,
 };
 
 export const viewport: Viewport = {
