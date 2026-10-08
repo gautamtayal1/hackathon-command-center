@@ -1,3 +1,5 @@
+import { describeError, logger } from "@/lib/logger";
+
 export type LumaHackathonInput = {
   lumaUrl: string;
   name?: string;
@@ -224,8 +226,10 @@ export function extractLumaMetadataFromHtml(html: string): LumaMetadata {
 }
 
 export async function readLumaMetadata(lumaUrl: string): Promise<LumaMetadata> {
+  let response: Response;
+
   try {
-    const response = await fetch(lumaUrl, {
+    response = await fetch(lumaUrl, {
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
       headers: {
@@ -234,13 +238,35 @@ export async function readLumaMetadata(lumaUrl: string): Promise<LumaMetadata> {
           "Mozilla/5.0 (compatible; HackathonAdmin/1.0; +https://localhost)",
       },
     });
+  } catch (error) {
+    logger.error("luma_metadata_fetch_failed", {
+      lumaUrl,
+      reason: "fetch_error",
+      ...describeError(error),
+    });
 
-    if (!response.ok) {
-      return { name: "", startsAt: null };
-    }
+    return { name: "", startsAt: null };
+  }
 
+  if (!response.ok) {
+    logger.error("luma_metadata_fetch_failed", {
+      lumaUrl,
+      reason: "not_ok",
+      status: response.status,
+    });
+
+    return { name: "", startsAt: null };
+  }
+
+  try {
     return extractLumaMetadataFromHtml(await response.text());
-  } catch {
+  } catch (error) {
+    logger.error("luma_metadata_fetch_failed", {
+      lumaUrl,
+      reason: "parse_error",
+      ...describeError(error),
+    });
+
     return { name: "", startsAt: null };
   }
 }
