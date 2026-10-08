@@ -24,6 +24,7 @@ import {
   createHackathonFromLumaInScope,
   selectHackathonInScope,
 } from "@/lib/hackathons";
+import { describeError, logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
@@ -194,8 +195,10 @@ function normalizeGithubRepoUrl(rawUrl: string) {
 }
 
 async function assertPublicGithubRepo(githubRepoUrl: string) {
+  let response: Response;
+
   try {
-    const response = await fetch(githubRepoUrl, {
+    response = await fetch(githubRepoUrl, {
       method: "HEAD",
       redirect: "follow",
       cache: "no-store",
@@ -205,15 +208,25 @@ async function assertPublicGithubRepo(githubRepoUrl: string) {
           "Mozilla/5.0 (compatible; 8xApplications/1.0; +https://localhost)",
       },
     });
+  } catch (error) {
+    logger.error("github_repo_check_failed", {
+      githubRepoUrl,
+      reason: "fetch_error",
+      ...describeError(error),
+    });
 
-    if (response.ok) {
-      return;
-    }
-  } catch {
     throw new Error("GitHub repo must be public and reachable.");
   }
 
-  throw new Error("GitHub repo must be public and reachable.");
+  if (!response.ok) {
+    logger.error("github_repo_check_failed", {
+      githubRepoUrl,
+      reason: "not_ok",
+      status: response.status,
+    });
+
+    throw new Error("GitHub repo must be public and reachable.");
+  }
 }
 
 async function cleanApplicationInput(input: ApplicationInput) {
@@ -310,6 +323,8 @@ async function inviteJudgeByEmail(email: string) {
 
     return { inviteStatus: "PENDING" as const, invitedAt: new Date() };
   } catch (error) {
+    logger.error("judge_invite_failed", describeError(error));
+
     throw new Error(
       error instanceof Error
         ? `Could not send judge invite: ${error.message}`
@@ -770,6 +785,11 @@ async function sendMagicLinkToJudge(
   });
 
   if (error) {
+    logger.error("judge_magic_link_failed", {
+      judgeId: judge.id,
+      errorMessage: error.message,
+    });
+
     throw new Error(error.message);
   }
 
@@ -780,6 +800,8 @@ async function sendMagicLinkToJudge(
       invitedAt: new Date(),
     },
   });
+
+  logger.info("judge_magic_link_sent", { judgeId: judge.id });
 }
 
 export async function sendJudgeMagicLink(id: string) {
@@ -814,6 +836,8 @@ export async function sendAllJudgeMagicLinks() {
 
   const origin = await getRequestOrigin();
 
+  logger.info("judge_magic_links_batch_started", { judgeCount: judges.length });
+
   for (const judge of judges) {
     await sendMagicLinkToJudge(judge, origin);
   }
@@ -840,6 +864,8 @@ export async function requestJudgeMagicLink(
   _previousState: JudgeLoginFormState,
   formData: FormData,
 ): Promise<JudgeLoginFormState> {
+  let judgeId: string | undefined;
+
   try {
     const email = cleanEmail(String(formData.get("email") ?? ""));
     const nextPath = safeJudgeNextPath(String(formData.get("next") ?? ""));
@@ -850,6 +876,8 @@ export async function requestJudgeMagicLink(
       },
       select: { id: true },
     });
+
+    judgeId = judge?.id;
 
     if (!judge) {
       return {
@@ -882,6 +910,11 @@ export async function requestJudgeMagicLink(
       message: "Check your email. 8x sent the judge link.",
     };
   } catch (error) {
+    logger.error("judge_login_magic_link_failed", {
+      judgeId,
+      ...describeError(error),
+    });
+
     return {
       status: "error",
       message:
@@ -956,6 +989,11 @@ export async function submitApplication(
         : null,
     };
   } catch (error) {
+    logger.error("application_submit_failed", {
+      hackathonId,
+      ...describeError(error),
+    });
+
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Could not apply.",
